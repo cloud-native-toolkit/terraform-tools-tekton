@@ -9,7 +9,7 @@ echo "*** creating tekton openshift-pipelines-operator"
 kubectl apply -f ${YAML_FILE}
 
 echo "*** Waiting for Tekton CRDs to be available"
-until oc get crd tasks.tekton.dev
+until kubectl get crd tasks.tekton.dev
 do
     echo '>>> waiting for tekton CRD availability'
     sleep 60
