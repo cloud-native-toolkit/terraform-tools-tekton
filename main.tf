@@ -42,6 +42,7 @@ resource "null_resource" "tekton_dashboard" {
     dashboard_version = var.tekton_dashboard_version
     dashboard_yaml_file_ocp = var.tekton_dashboard_yaml_file_ocp
     dashboard_yaml_file_k8s = var.tekton_dashboard_yaml_file_k8s
+    tmp_dir = local.tmp_dir
   }
 
   provisioner "local-exec" {
@@ -49,7 +50,7 @@ resource "null_resource" "tekton_dashboard" {
 
     environment = {
       KUBECONFIG = self.triggers.kubeconfig
-      TMP_DIR    = local.tmp_dir
+      TMP_DIR    = self.triggers.tmp_dir
     }
   }
 
@@ -59,7 +60,7 @@ resource "null_resource" "tekton_dashboard" {
 
     environment = {
       KUBECONFIG = self.triggers.kubeconfig
-      TMP_DIR    = local.tmp_dir
+      TMP_DIR    = self.triggers.tmp_dir
     }
   }
 }
@@ -87,6 +88,7 @@ resource "null_resource" "copy_cloud_configmap" {
     kubeconfig         = var.cluster_config_file_path
     tools_namespace    = var.tools_namespace
     dashboard_namespace = var.tekton_dashboard_namespace
+    tmp_dir = local.tmp_dir
   }
 
   provisioner "local-exec" {
@@ -94,7 +96,7 @@ resource "null_resource" "copy_cloud_configmap" {
 
     environment = {
       KUBECONFIG = self.triggers.kubeconfig
-      TMP_DIR    = local.tmp_dir
+      TMP_DIR    = self.triggers.tmp_dir
     }
   }
 
@@ -104,7 +106,7 @@ resource "null_resource" "copy_cloud_configmap" {
 
     environment = {
       KUBECONFIG = self.triggers.kubeconfig
-      TMP_DIR    = local.tmp_dir
+      TMP_DIR    = self.triggers.tmp_dir
     }
   }
 }
