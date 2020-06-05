@@ -66,6 +66,7 @@ resource "null_resource" "tekton_dashboard" {
 }
 
 resource "helm_release" "tekton-config" {
+  count      = var.cluster_type == "ocp4" ? 1 : 0
   depends_on = [null_resource.tekton_dashboard]
 
   name         = "tekton"
