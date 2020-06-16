@@ -131,7 +131,7 @@ jobs:
       - name: Release
         run: |
           echo ${{ github.event_name }}
-          release-it --ci $RELEASE_TYPE -c .github/.release-it.yaml --git.tagName='${version}'
+          release-it --ci $RELEASE_TYPE -c .github/.release-it.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TYPE: ${{ steps.release-type.outputs.release-type }}
