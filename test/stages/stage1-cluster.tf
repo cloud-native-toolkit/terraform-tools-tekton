@@ -8,7 +8,7 @@ module "dev_cluster" {
   cluster_exists          = true
   ibmcloud_api_key        = var.ibmcloud_api_key
   name_prefix             = var.name_prefix
-  is_vpc                  = false
+  is_vpc                  = var.vpc_cluster
   private_vlan_id         = ""
   public_vlan_id          = ""
   vlan_datacenter         = ""
