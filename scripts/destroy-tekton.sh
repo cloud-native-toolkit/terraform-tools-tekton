@@ -10,4 +10,6 @@ YAML_FILE=${MODULE_DIR}/tekton.yaml
 echo "*** deleting tekton openshift-pipelines-operator"
 kubectl delete -f ${YAML_FILE} || true
 
+kubectl delete -n "${NAMESPACE}" serviceaccount pipeline
+
 exit 0
