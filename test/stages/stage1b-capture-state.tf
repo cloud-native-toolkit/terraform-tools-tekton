@@ -5,4 +5,8 @@ module "dev_capture_state" {
   cluster_config_file_path = module.dev_cluster.config_file_path
   namespace                = module.dev_tools_namespace.name
   output_path              = "${path.cwd}/cluster-state/before"
+  exclude_resources        = [
+    "serviceaccount/pipeline",
+    "secret/pipeline"
+  ]
 }
