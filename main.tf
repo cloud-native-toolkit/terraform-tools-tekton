@@ -20,6 +20,7 @@ resource "null_resource" "tekton" {
   triggers = {
     kubeconfig = var.cluster_config_file_path
     namespace  = var.tools_namespace
+    tmp_dir    = local.tmp_dir
   }
 
   provisioner "local-exec" {
@@ -27,7 +28,7 @@ resource "null_resource" "tekton" {
 
     environment = {
       KUBECONFIG = self.triggers.kubeconfig
-      TMP_DIR    = local.tmp_dir
+      TMP_DIR    = self.triggers.tmp_dir
     }
   }
 
@@ -37,7 +38,7 @@ resource "null_resource" "tekton" {
 
     environment = {
       KUBECONFIG = self.triggers.kubeconfig
-      TMP_DIR    = local.tmp_dir
+      TMP_DIR    = self.triggers.tmp_dir
     }
   }
 }
