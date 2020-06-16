@@ -1,5 +1,5 @@
 module "dev_tools_tekton" {
-  source = "github.com/ibm-garage-cloud/terraform-tools-tekton.git"
+  source = "./modules"
 
   cluster_type             = module.dev_cluster.type_code
   cluster_config_file_path = module.dev_cluster.config_file_path
