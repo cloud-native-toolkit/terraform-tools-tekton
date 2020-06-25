@@ -12,6 +12,20 @@ echo "*** Waiting for Tekton CRDs to be available"
 until kubectl get crd tasks.tekton.dev
 do
     echo '>>> waiting for tekton CRD availability'
-    sleep 60
+    sleep 30
 done
 echo '>>> Tekton CRDs are available'
+
+count=0
+echo "*** Waiting for Tekton CSV to be available"
+until [[ $(oc get csv -o custom-columns=name:.metadata.name | grep openshift-pipelines-operator) =~ openshift-pipelines-operator ]] || [[ "$count" -eq 10 ]]; do
+  echo '   >>> waiting for Tekton CSV availability'
+  sleep 30
+  count=$((count+1))
+done
+
+if [[ "$count" -eq 10 ]]; then
+  echo '>>> Timed out waiting for Tekton CSV'
+  exit 1
+fi
+echo '>>> Tekton CSV is installed'
