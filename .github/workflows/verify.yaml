@@ -33,7 +33,6 @@ jobs:
       TF_VAR_cluster_name: ${{ secrets[format('TEST_CLUSTER_{0}', matrix.platform)] }}
       TF_VAR_cluster_type: ${{ matrix.platform }}
       TF_VAR_vpc_cluster: ${{ endswith(matrix.platform, 'vpc') }}
-      TF_VAR_vpc_cluster: ${{ endswith(matrix.platform, 'vpc') }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
