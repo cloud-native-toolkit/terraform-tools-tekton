@@ -18,7 +18,7 @@ echo '>>> Tekton CRDs are available'
 
 count=0
 echo "*** Waiting for Tekton CSV to be available"
-until oc get csv -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep -q openshift-pipelines-operator || [[ "$count" -eq 10 ]]; do
+until [[ $(oc get csv -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep openshift-pipelines-operator) =~ openshift-pipelines-operator ]] || [[ "$count" -eq 10 ]]; do
   echo '   >>> waiting for Tekton CSV availability'
   sleep 30
   count=$((count+1))
