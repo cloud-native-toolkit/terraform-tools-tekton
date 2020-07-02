@@ -10,116 +10,68 @@ provider "null" {
 }
 
 locals {
-  tmp_dir      = "${path.cwd}/.tmp"
-  ingress_host = "tekton-${var.tools_namespace}.${var.cluster_ingress_hostname}"
-}
-
-resource "null_resource" "tekton" {
-  count      = var.cluster_type == "ocp4" ? 1 : 0
-
-  triggers = {
-    kubeconfig = var.cluster_config_file_path
-    namespace  = var.tools_namespace
-    tmp_dir    = local.tmp_dir
+  tmp_dir             = "${path.cwd}/.tmp"
+  dashboard_namespace = var.cluster_type == "ocp4" ? "openshift-pipelines" : "tekton-pipelines"
+  dashboard_file      = var.cluster_type == "ocp4" ? var.tekton_dashboard_yaml_file_ocp : var.tekton_dashboard_yaml_file_k8s
+  ingress_host        = "tekton-dashboard-${local.dashboard_namespace}.${var.cluster_ingress_hostname}"
+  gitops_dir          = var.gitops_dir != "" ? var.gitops_dir : "${path.cwd}/gitops"
+  chart_name          = "tekton"
+  chart_dir           = "${local.gitops_dir}/${local.chart_name}"
+  global_config       = {
+    clusterType = var.cluster_type
+    ingressSubdomain = var.cluster_ingress_hostname
   }
-
-  provisioner "local-exec" {
-    command = "${path.module}/scripts/deploy-tekton.sh"
-
-    environment = {
-      KUBECONFIG = self.triggers.kubeconfig
-      TMP_DIR    = self.triggers.tmp_dir
-    }
+  tekton_operator_config  = {
+    olmNamespace = var.olm_namespace
+    operatorNamespace = var.operator_namespace
+    app = "tekton"
   }
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = "${path.module}/scripts/destroy-tekton.sh ${self.triggers.namespace}"
-
-    environment = {
-      KUBECONFIG = self.triggers.kubeconfig
-      TMP_DIR    = self.triggers.tmp_dir
-    }
+  tool_config = {
+    url = "https://${local.ingress_host}"
+    applicationMenu = false
   }
 }
 
-resource "null_resource" "tekton_dashboard" {
-  count      = var.cluster_type == "ocp4" ? 1 : 0
-  depends_on = [null_resource.tekton]
-
-  triggers = {
-    kubeconfig = var.cluster_config_file_path
-    cluster_type = var.cluster_type
-    dashboard_namespace = var.tekton_dashboard_namespace
-    dashboard_version = var.tekton_dashboard_version
-    dashboard_yaml_file_ocp = var.tekton_dashboard_yaml_file_ocp
-    dashboard_yaml_file_k8s = var.tekton_dashboard_yaml_file_k8s
-    tmp_dir = local.tmp_dir
-  }
-
+resource "null_resource" "setup-chart" {
   provisioner "local-exec" {
-    command = "${path.module}/scripts/deploy-tekton-dashboard.sh ${self.triggers.dashboard_namespace} ${self.triggers.dashboard_version} ${self.triggers.cluster_type} ${self.triggers.dashboard_yaml_file_k8s} ${self.triggers.dashboard_yaml_file_ocp}"
-
-    environment = {
-      KUBECONFIG = self.triggers.kubeconfig
-      TMP_DIR    = self.triggers.tmp_dir
-    }
-  }
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = "${path.module}/scripts/destroy-tekton-dashboard.sh ${self.triggers.dashboard_namespace} ${self.triggers.dashboard_version} ${self.triggers.cluster_type} ${self.triggers.dashboard_yaml_file_k8s} ${self.triggers.dashboard_yaml_file_ocp}"
-
-    environment = {
-      KUBECONFIG = self.triggers.kubeconfig
-      TMP_DIR    = self.triggers.tmp_dir
-    }
+    command = "mkdir -p ${local.chart_dir} && cp -R ${path.module}/chart/${local.chart_name}/* ${local.chart_dir}"
   }
 }
 
-resource "helm_release" "tekton-config" {
-  count      = var.cluster_type == "ocp4" ? 1 : 0
-  depends_on = [null_resource.tekton_dashboard]
-
-  name         = "tekton"
-  repository   = "https://ibm-garage-cloud.github.io/toolkit-charts/"
-  chart        = "tool-config"
-  namespace    = var.tools_namespace
-  force_update = true
-
-  set {
-    name  = "url"
-    value = "https://${local.ingress_host}"
+resource "null_resource" "download-tekton-dashboard-yaml" {
+  provisioner "local-exec" {
+    command = "curl -o ${local.chart_dir}/templates/${local.dashboard_file} https://github.com/tektoncd/dashboard/releases/download/${var.tekton_dashboard_version}/${local.dashboard_file}"
   }
 }
 
-resource "null_resource" "copy_cloud_configmap" {
-  count      = var.cluster_type == "ocp4" ? 1 : 0
-  depends_on = [helm_release.tekton-config]
+resource "local_file" "tekton-values" {
+  depends_on = [null_resource.setup-chart, null_resource.download-tekton-dashboard-yaml]
 
-  triggers = {
-    kubeconfig         = var.cluster_config_file_path
-    tools_namespace    = var.tools_namespace
-    dashboard_namespace = var.tekton_dashboard_namespace
-    tmp_dir = local.tmp_dir
-  }
+  content  = yamlencode({
+    global = local.global_config
+    tekton-operator = local.tekton_operator_config
+    tool-config = local.tool_config
+  })
+  filename = "${local.chart_dir}/values.yaml"
+}
 
+resource "null_resource" "print-values" {
   provisioner "local-exec" {
-    command = "${path.module}/scripts/copy-configmap-to-namespace.sh tekton-config ${self.triggers.tools_namespace}  ${self.triggers.dashboard_namespace}"
-
-    environment = {
-      KUBECONFIG = self.triggers.kubeconfig
-      TMP_DIR    = self.triggers.tmp_dir
-    }
+    command = "cat ${local_file.tekton-values.filename}"
   }
+}
 
-  provisioner "local-exec" {
-    when    = destroy
-    command = "${path.module}/scripts/destroy-tekton-configmap-tools.sh tekton-config ${self.triggers.tools_namespace}"
+resource "helm_release" "tekton" {
+  depends_on = [local_file.tekton-values]
+  count = var.mode != "setup" ? 1 : 0
 
-    environment = {
-      KUBECONFIG = self.triggers.kubeconfig
-      TMP_DIR    = self.triggers.tmp_dir
-    }
-  }
+  name              = "nexus"
+  chart             = local.chart_dir
+  namespace         = var.tools_namespace
+  timeout           = 1200
+  dependency_update = true
+  force_update      = true
+  replace           = true
+
+  disable_openapi_validation = true
 }
