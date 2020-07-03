@@ -2,8 +2,11 @@
 
 SCRIPT_DIR=$(cd $(dirname $0); pwd -P)
 
-CLUSTER_TYPE="$1"
-NAMESPACE="$2"
+WORKSPACE_DIR="$1"
+CLUSTER_TYPE="$2"
+NAMESPACE="$3"
+
+KUBECONFIG="${WORKSPACE_DIR}/.kube/config"
 
 echo "Verifying resources in $NAMESPACE namespace"
 
