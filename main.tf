@@ -40,7 +40,7 @@ resource "null_resource" "setup-chart" {
 
 resource "null_resource" "download-tekton-dashboard-yaml" {
   provisioner "local-exec" {
-    command = "curl -o ${local.chart_dir}/templates/${local.dashboard_file} https://github.com/tektoncd/dashboard/releases/download/${var.tekton_dashboard_version}/${local.dashboard_file}"
+    command = "mkdir -p ${local.chart_dir}/templates && curl -o ${local.chart_dir}/templates/${local.dashboard_file} https://github.com/tektoncd/dashboard/releases/download/${var.tekton_dashboard_version}/${local.dashboard_file}"
   }
 }
 
