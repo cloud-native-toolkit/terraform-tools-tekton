@@ -63,9 +63,9 @@ resource "null_resource" "print-values" {
 
 resource "helm_release" "tekton" {
   depends_on = [local_file.tekton-values]
-  count = var.mode != "setup" ? 1 : 0
+  count = var.mode != "setup" && var.cluster_type == "ocp4" ? 1 : 0
 
-  name              = "nexus"
+  name              = "tekton"
   chart             = local.chart_dir
   namespace         = var.tools_namespace
   timeout           = 1200
