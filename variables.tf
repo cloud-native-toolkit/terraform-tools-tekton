@@ -23,13 +23,13 @@ variable "tools_namespace" {
 variable "tekton_dashboard_version" {
   type        = string
   description = "The tekton dashboard version to install"
-  default     = "v0.5.2"
+  default     = "v0.7.1"
 }
 
 variable "tekton_dashboard_namespace" {
   type        = string
   description = "The tekton dashboard version to install"
-  default     = "tekton-pipelines"
+  default     = "openshift-pipelines"
 }
 
 variable "tekton_dashboard_yaml_file_ocp" {
@@ -44,3 +44,26 @@ variable "tekton_dashboard_yaml_file_k8s" {
   default     = "tekton-dashboard-release.yaml"
 }
 
+variable "olm_namespace" {
+  type        = string
+  description = "Namespace where olm is installed"
+  default     = ""
+}
+
+variable "operator_namespace" {
+  type        = string
+  description = "Namespace where operators will be installed"
+  default     = ""
+}
+
+variable "gitops_dir" {
+  type        = string
+  description = "Directory where the gitops repo content should be written"
+  default     = ""
+}
+
+variable "mode" {
+  type        = string
+  description = "The mode of operation for the module (setup)"
+  default     = ""
+}

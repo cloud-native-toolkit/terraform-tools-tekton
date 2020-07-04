@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR=$(cd $(dirname $0); pwd -P)
+
 CLUSTER_TYPE="$1"
+
+export KUBECONFIG="${SCRIPT_DIR}/.kube/config"
 
 OUTER_LENGTH=$(yq r ./resources.yaml --length)
 

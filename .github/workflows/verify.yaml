@@ -18,9 +18,9 @@ jobs:
 
     strategy:
       matrix:
-        platform: [iks118_vpc, ocp3, ocp4]
+        platform: [iks118_vpc, ocp3, ocp4_vpc]
 #      max-parallel: 1
-#      fail-fast: false
+      fail-fast: false
 
     env:
       HOME: /home/devops
@@ -76,17 +76,17 @@ jobs:
           ./destroy.sh
 
       # Test destroy
-      - name: Validate destroy ${{ matrix.platform }}
-        run: |
-          cd /tmp/workspace
-          ./capture-cluster-state.sh ${{ matrix.platform }} $PWD/cluster-state/before $PWD/cluster-state/after
-          if diff -q $PWD/cluster-state/before $PWD/cluster-state/after 1> /dev/null; then
-            echo "Destroy completed successfully"
-          else
-            echo "Resources don't match"
-            diff $PWD/cluster-state/before $PWD/cluster-state/after
-            exit 1
-          fi
+#      - name: Validate destroy ${{ matrix.platform }}
+#        run: |
+#          cd /tmp/workspace
+#          ./capture-cluster-state.sh ${{ matrix.platform }} $PWD/cluster-state/before $PWD/cluster-state/after
+#          if diff -q $PWD/cluster-state/before $PWD/cluster-state/after 1> /dev/null; then
+#            echo "Destroy completed successfully"
+#          else
+#            echo "Resources don't match"
+#            diff $PWD/cluster-state/before $PWD/cluster-state/after
+#            exit 1
+#          fi
 
   release:
     #    if: ${{ github.event_name == 'push' }}
