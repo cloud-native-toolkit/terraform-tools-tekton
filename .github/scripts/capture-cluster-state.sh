@@ -26,14 +26,14 @@ ls "${INFILE_DIR}" | while read infile; do
 
     kubectl get -n "${NAMESPACE}" "${resources}" -o jsonpath='{range .items[*]}{.metadata.namespace}{"/"}{.kind}{"/"}{.metadata.name}{"\n"}{end}' | \
       tr '[:upper:]' '[:lower:]' > "${OUTFILE}"
+
+    if kubectl get subscription -n "${NAMESPACE}" 1> /dev/null 2> /dev/null; then
+      kubectl get -n "${NAMESPACE}" subscription -o jsonpath='{range .items[*]}{.metadata.namespace}{"/"}{.kind}{"/"}{.metadata.name}{"\n"}{end}' 2> /dev/null | \
+        tr '[:upper:]' '[:lower:]' >> "${OUTFILE}"
+    fi
   else
     echo "Namespace does not exist - ${NAMESPACE}"
     touch "${OUTFILE}"
-  fi
-
-  if kubectl get subscription -n "${NAMESPACE}" 1> /dev/null 2> /dev/null; then
-    kubectl get -n "${NAMESPACE}" subscription -o jsonpath='{range .items[*]}{.metadata.namespace}{"/"}{.kind}{"/"}{.metadata.name}{"\n"}{end}' 2> /dev/null | \
-      tr '[:upper:]' '[:lower:]' >> "${OUTFILE}"
   fi
 
   cat "${OUTFILE}"
