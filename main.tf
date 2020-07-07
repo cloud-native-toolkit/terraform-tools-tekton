@@ -81,7 +81,7 @@ resource "null_resource" "delete-pipeline-sa" {
   provisioner "local-exec" {
     when = destroy
 
-    command = "kubectl delete serviceaccount -n ${self.triggers.NAMESPACE} pipeline"
+    command = "kubectl delete serviceaccount -n ${self.triggers.NAMESPACE} pipeline || exit 0"
 
     environment = {
       KUBECONFIG = self.triggers.KUBECONFIG
