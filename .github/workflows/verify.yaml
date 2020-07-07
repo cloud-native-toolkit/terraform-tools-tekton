@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        platform: [iks118_vpc, ocp3, ocp4_vpc]
+        platform: [iks118_vpc, ocp4_vpc, ocp44_vpc]
 #      max-parallel: 1
       fail-fast: false
 
@@ -103,4 +103,4 @@ jobs:
           config-name: release-drafter.yaml
           publish: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}

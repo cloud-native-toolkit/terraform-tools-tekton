@@ -38,14 +38,8 @@ resource "null_resource" "setup-chart" {
   }
 }
 
-resource "null_resource" "download-tekton-dashboard-yaml" {
-  provisioner "local-exec" {
-    command = "mkdir -p ${local.chart_dir}/templates && curl -L -o ${local.chart_dir}/templates/${local.dashboard_file} https://github.com/tektoncd/dashboard/releases/download/${var.tekton_dashboard_version}/${local.dashboard_file}"
-  }
-}
-
 resource "local_file" "tekton-values" {
-  depends_on = [null_resource.setup-chart, null_resource.download-tekton-dashboard-yaml]
+  depends_on = [null_resource.setup-chart]
 
   content  = yamlencode({
     global = local.global_config
