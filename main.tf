@@ -69,3 +69,22 @@ resource "helm_release" "tekton" {
 
   disable_openapi_validation = true
 }
+
+resource "null_resource" "delete-pipeline-sa" {
+  depends_on = [helm_release.tekton]
+
+  triggers = {
+    NAMESPACE  = var.tools_namespace
+    KUBECONFIG = var.cluster_config_file_path
+  }
+
+  provisioner "local-exec" {
+    when = destroy
+
+    command = "kubectl delete serviceaccount -n ${self.triggers.NAMESPACE} pipeline"
+
+    environment = {
+      KUBECONFIG = self.triggers.KUBECONFIG
+    }
+  }
+}
