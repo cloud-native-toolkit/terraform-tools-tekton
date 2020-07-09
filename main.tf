@@ -25,6 +25,11 @@ locals {
     olmNamespace = var.olm_namespace
     operatorNamespace = var.operator_namespace
     app = "tekton"
+    ocpCatalog = {
+      source = "community-operators"
+      channel = "dev-preview"
+      name = "openshift-pipelines-operator"
+    }
   }
   tool_config = {
     url = "https://${local.ingress_host}"
