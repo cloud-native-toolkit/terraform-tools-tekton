@@ -77,6 +77,7 @@ resource "helm_release" "tekton" {
 
 resource "null_resource" "wait-for-crd" {
   depends_on = [helm_release.tekton]
+  count = var.mode != "setup" && var.cluster_type == "ocp4" ? 1 : 0
 
   provisioner "local-exec" {
     command = "${path.module}/scripts/wait-for-crds.sh"
