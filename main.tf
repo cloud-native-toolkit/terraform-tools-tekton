@@ -75,6 +75,19 @@ resource "helm_release" "tekton" {
   disable_openapi_validation = true
 }
 
+resource "null_resource" "wait-for-crd" {
+  depends_on = [helm_release.tekton]
+  count = var.mode != "setup" && var.cluster_type == "ocp4" ? 1 : 0
+
+  provisioner "local-exec" {
+    command = "${path.module}/scripts/wait-for-crds.sh"
+
+    environment = {
+      KUBECONFIG = var.cluster_config_file_path
+    }
+  }
+}
+
 resource "null_resource" "delete-pipeline-sa" {
   depends_on = [helm_release.tekton]
 
