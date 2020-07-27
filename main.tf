@@ -41,7 +41,6 @@ resource "local_file" "tekton-values" {
   content  = yamlencode({
     global = local.global_config
     tekton-operator = local.tekton_operator_config
-    tool-config = local.tool_config
   })
   filename = "${local.chart_dir}/values.yaml"
 }
