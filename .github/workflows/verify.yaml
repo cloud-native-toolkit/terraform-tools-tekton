@@ -64,10 +64,10 @@ jobs:
           ./apply.sh
 
       # Test deploy
-      - name: Validate deploy ${{ matrix.platform }}
-        run: |
-          cd /tmp/workspace
-          ./validate-deploy.sh ${{ matrix.platform }} ${{ env.NAMESPACE }}
+#      - name: Validate deploy ${{ matrix.platform }}
+#        run: |
+#          cd /tmp/workspace
+#          ./validate-deploy.sh ${{ matrix.platform }} ${{ env.NAMESPACE }}
 
       # Destroy
       - name: Destroy ${{ matrix.platform }}
