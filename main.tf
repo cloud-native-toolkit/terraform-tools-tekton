@@ -27,10 +27,6 @@ locals {
     operatorNamespace = var.operator_namespace
     app = "tekton"
   }
-  tool_config = {
-    url = "https://${local.ingress_host}"
-    applicationMenu = false
-  }
 }
 
 resource "null_resource" "setup-chart" {
