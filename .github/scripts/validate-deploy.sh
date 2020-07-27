@@ -4,6 +4,11 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd -P)
 
 CLUSTER_TYPE="$1"
 NAMESPACE="$2"
+APP_NAME="$3"
+
+if [[ -z "${APP_NAME}" ]]; then
+  APP_NAME=$(echo "${NAMESPACE}" | sed "s/tools-//g")
+fi
 
 export KUBECONFIG="${SCRIPT_DIR}/.kube/config"
 
@@ -33,7 +38,7 @@ echo "${ENDPOINTS}" | while read endpoint; do
   fi
 done
 
-CONFIG_URLS=$(kubectl get configmap -n "${NAMESPPACE}" -l grouping=garage-cloud-native-toolkit -l app.kubernetes.io/component=tools -o json | jq '.items[].data | to_entries | select(.[].key | endswith("_URL")) | .[].value')
+CONFIG_URLS=$(kubectl get configmap -n "${NAMESPACE}" -l grouping=garage-cloud-native-toolkit -l app.kubernetes.io/component=tools -l app="${APP_NAME}" -o json | jq '.items[].data | to_entries | select(.[].key | endswith("_URL")) | .[].value')
 
 echo "${CONFIG_URLS}" | while read url; do
   if [[ -n "${url}" ]]; then
