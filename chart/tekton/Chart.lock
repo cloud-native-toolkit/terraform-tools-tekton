@@ -1,9 +1,9 @@
 dependencies:
 - name: tekton-operator
   repository: https://ibm-garage-cloud.github.io/toolkit-charts/
-  version: 0.1.0
+  version: 0.2.0
 - name: tool-config
   repository: https://ibm-garage-cloud.github.io/toolkit-charts/
   version: 0.8.1
-digest: sha256:0eff3acc75f9e5d487cce5d5f133a4eea8b20c87262bbeb0d4375c8bbf80efe1
-generated: "2020-07-23T23:13:55.564092-05:00"
+digest: sha256:47f74dcb394e27a2d0340e3b0e6ec1746697bff47cce769a3bfc309674ea44c0
+generated: "2020-07-27T16:43:05.159912-05:00"

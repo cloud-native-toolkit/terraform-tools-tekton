@@ -22,6 +22,7 @@ locals {
     ingressSubdomain = var.cluster_ingress_hostname
   }
   tekton_operator_config  = {
+    clusterType = var.cluster_type
     olmNamespace = var.olm_namespace
     operatorNamespace = var.operator_namespace
     app = "tekton"
