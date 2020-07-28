@@ -22,13 +22,10 @@ locals {
     ingressSubdomain = var.cluster_ingress_hostname
   }
   tekton_operator_config  = {
+    clusterType = var.cluster_type
     olmNamespace = var.olm_namespace
     operatorNamespace = var.operator_namespace
     app = "tekton"
-  }
-  tool_config = {
-    url = "https://${local.ingress_host}"
-    applicationMenu = false
   }
 }
 
@@ -44,7 +41,6 @@ resource "local_file" "tekton-values" {
   content  = yamlencode({
     global = local.global_config
     tekton-operator = local.tekton_operator_config
-    tool-config = local.tool_config
   })
   filename = "${local.chart_dir}/values.yaml"
 }
