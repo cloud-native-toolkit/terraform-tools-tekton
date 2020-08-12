@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        platform: [iks118_vpc, ocp4_vpc, ocp44_vpc]
+        platform: [ocp4_vpc, ocp44_vpc]
 #      max-parallel: 1
       fail-fast: false
 
@@ -67,7 +67,7 @@ jobs:
       - name: Validate deploy ${{ matrix.platform }}
         run: |
           cd /tmp/workspace
-          ./validate-deploy.sh ${{ matrix.platform }} ${{ env.NAMESPACE }}
+          ./validate-deploy.sh ${{ matrix.platform }} ${{ env.NAMESPACE }} tekton
 
       # Destroy
       - name: Destroy ${{ matrix.platform }}
