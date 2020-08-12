@@ -13,7 +13,8 @@ locals {
   tmp_dir             = "${path.cwd}/.tmp"
   dashboard_namespace = var.cluster_type == "ocp4" ? "openshift-pipelines" : "tekton-pipelines"
   dashboard_file      = var.cluster_type == "ocp4" ? var.tekton_dashboard_yaml_file_ocp : var.tekton_dashboard_yaml_file_k8s
-  ingress_host        = "tekton-dashboard-${local.dashboard_namespace}.${var.cluster_ingress_hostname}"
+  ingress_url         = var.cluster_type == "ocp4" ? "https://${data.local_file.console-host[0].content}/k8s/all-namespaces/tekton.dev~v1alpha1~Pipeline" : ""
+  console_host_file   = "${local.tmp_dir}/console.host"
   gitops_dir          = var.gitops_dir != "" ? var.gitops_dir : "${path.cwd}/gitops"
   chart_name          = "tekton"
   chart_dir           = "${local.gitops_dir}/${local.chart_name}"
@@ -27,6 +28,10 @@ locals {
     operatorNamespace = var.operator_namespace
     app = "tekton"
   }
+  tool_config = {
+    url = local.ingress_url
+    applicationMenu = false
+  }
 }
 
 resource "null_resource" "setup-chart" {
@@ -35,12 +40,32 @@ resource "null_resource" "setup-chart" {
   }
 }
 
+resource "null_resource" "read-console-host" {
+  count = var.cluster_type == "ocp4" ? 1 : 0
+
+  provisioner "local-exec" {
+    command = "kubectl get -n openshift-console route/console -o jsonpath='{.spec.host}' > ${local.console_host_file}"
+
+    environment = {
+      KUBECONFIG = var.cluster_config_file_path
+    }
+  }
+}
+
+data "local_file" "console-host" {
+  count = var.cluster_type == "ocp4" ? 1 : 0
+  depends_on = [null_resource.read-console-host]
+
+  filename = local.console_host_file
+}
+
 resource "local_file" "tekton-values" {
   depends_on = [null_resource.setup-chart]
 
   content  = yamlencode({
     global = local.global_config
     tekton-operator = local.tekton_operator_config
+    tool-config = local.tool_config
   })
   filename = "${local.chart_dir}/values.yaml"
 }
