@@ -18,6 +18,7 @@ locals {
   gitops_dir          = var.gitops_dir != "" ? var.gitops_dir : "${path.cwd}/gitops"
   chart_name          = "tekton"
   chart_dir           = "${local.gitops_dir}/${local.chart_name}"
+  cluster_version_file = "${local.tmp_dir}/cluster.version"
   global_config       = {
     clusterType = var.cluster_type
     ingressSubdomain = var.cluster_ingress_hostname
@@ -27,11 +28,38 @@ locals {
     olmNamespace = var.olm_namespace
     operatorNamespace = var.operator_namespace
     app = "tekton"
+    ocpCatalog = {
+      channel = "ocp-${data.local_file.cluster_version.content}"
+    }
   }
   tool_config = {
     url = local.ingress_url
     applicationMenu = false
   }
+}
+
+resource "null_resource" "setup_dirs" {
+  provisioner "local-exec" {
+    command = "mkdir -p ${local.tmp_dir}"
+  }
+}
+
+resource "null_resource" "cluster_version" {
+  depends_on = [null_resource.setup_dirs]
+
+  provisioner "local-exec" {
+    command = "${path.module}/scripts/determine-cluster-version.sh > ${local.cluster_version_file}"
+
+    environment = {
+      KUBECONFIG = var.cluster_config_file_path
+    }
+  }
+}
+
+data "local_file" "cluster_version" {
+  depends_on = [null_resource.cluster_version]
+
+  filename = local.cluster_version_file
 }
 
 resource "null_resource" "setup-chart" {
