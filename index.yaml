@@ -57,6 +57,105 @@ versions:
           output: olm_namespace
         type: string
         description: Namespace where olm is installed
+        default: ""
+        optional: true
+      - name: operator_namespace
+        moduleRef:
+          id: olm
+          output: target_namespace
+        type: string
+        description: Namespace where operators will be installed
+        default: ""
+        optional: true
+      - name: tekton_dashboard_version
+        scope: ignore
+        type: string
+        description: The tekton dashboard version to install
+        default: v0.7.1
+        optional: true
+      - name: tekton_dashboard_namespace
+        scope: ignore
+        type: string
+        description: The tekton dashboard version to install
+        default: openshift-pipelines
+        optional: true
+      - name: tekton_dashboard_yaml_file_ocp
+        scope: ignore
+        type: string
+        description: The tekton dashboard yaml file for the release for openshift
+        default: openshift-tekton-dashboard-release.yaml
+        optional: true
+      - name: tekton_dashboard_yaml_file_k8s
+        scope: ignore
+        type: string
+        description: The tekton dashboard yaml file for the release for kubernetes
+        default: tekton-dashboard-release.yaml
+        optional: true
+      - name: gitops_dir
+        scope: global
+        type: string
+        description: Directory where the gitops repo content should be written
+        default: ""
+        optional: true
+      - name: mode
+        scope: global
+        type: string
+        description: The mode of operation for the module (setup)
+        default: ""
+        optional: true
+    version: v2.1.2
+    outputs:
+      - name: namespace
+        description: The namespace where Tekton dashboard was deployed
+  - platforms:
+      - ocp4
+    dependencies:
+      - id: cluster
+        refs:
+          - source: github.com/ibm-garage-cloud/terraform-ibm-container-platform
+            version: ">= 1.7.0"
+          - source: github.com/ibm-garage-cloud/terraform-k8s-ocp-cluster
+            version: ">= 2.0.0"
+      - id: namespace
+        refs:
+          - source: github.com/ibm-garage-cloud/terraform-k8s-namespace
+            version: ">= 2.1.0"
+      - id: olm
+        refs:
+          - source: github.com/ibm-garage-cloud/terraform-k8s-olm
+            version: ">= 1.0.0"
+    variables:
+      - name: cluster_type
+        moduleRef:
+          id: cluster
+          output: type_code
+        type: string
+        description: The type of cluster that should be created (openshift or ocp3 or ocp4 or kubernetes)
+      - name: cluster_ingress_hostname
+        moduleRef:
+          id: cluster
+          output: ingress_hostname
+        type: string
+        description: Ingress hostname of the IKS cluster.
+      - name: cluster_config_file_path
+        moduleRef:
+          id: cluster
+          output: config_file_path
+        type: string
+        description: The path to the config file for the cluster
+      - name: tools_namespace
+        moduleRef:
+          id: namespace
+          output: name
+          discriminator: tools
+        type: string
+        description: The namespace where tools are installed
+      - name: olm_namespace
+        moduleRef:
+          id: olm
+          output: olm_namespace
+        type: string
+        description: Namespace where olm is installed
       - name: operator_namespace
         moduleRef:
           id: olm
