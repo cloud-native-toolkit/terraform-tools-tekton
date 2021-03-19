@@ -29,7 +29,7 @@ locals {
     operatorNamespace = var.operator_namespace
     app = "tekton"
     ocpCatalog = {
-      channel = "ocp-${data.local_file.cluster_version.content}"
+      channel = "stable"
     }
   }
   tool_config = {
