@@ -1,13 +1,3 @@
-provider "helm" {
-  version = ">= 1.1.1"
-
-  kubernetes {
-    config_path = var.cluster_config_file_path
-  }
-}
-
-provider "null" {
-}
 
 locals {
   tmp_dir             = "${path.cwd}/.tmp"
