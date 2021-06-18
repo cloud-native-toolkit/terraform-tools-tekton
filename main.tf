@@ -33,6 +33,10 @@ resource "null_resource" "setup_dirs" {
   provisioner "local-exec" {
     command = "mkdir -p ${local.tmp_dir}"
   }
+
+  provisioner "local-exec" {
+    command = "echo 'Provision tekton: ${var.provision}'"
+  }
 }
 
 resource "null_resource" "cluster_version" {
