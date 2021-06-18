@@ -10,6 +10,7 @@ locals {
   chart_dir           = "${local.gitops_dir}/${local.chart_name}"
   cluster_version_file = "${local.tmp_dir}/cluster.version"
   global_config       = {
+    enabled = var.provision
     clusterType = var.cluster_type
     ingressSubdomain = var.cluster_ingress_hostname
   }
