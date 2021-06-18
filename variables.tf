@@ -67,3 +67,9 @@ variable "mode" {
   description = "The mode of operation for the module (setup)"
   default     = ""
 }
+
+variable "provision" {
+  type        = bool
+  description = "Flag indicating that Tekton should be provisioned"
+  default     = true
+}

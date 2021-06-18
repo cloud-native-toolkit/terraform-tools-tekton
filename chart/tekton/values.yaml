@@ -1,7 +1,6 @@
-global: {}
+global:
+  enabled: true
 
-service-account: {}
-
-nexus: {}
+tekton-operator: {}
 
 tool-config: {}
