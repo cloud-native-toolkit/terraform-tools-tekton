@@ -99,23 +99,21 @@ resource "null_resource" "print-values" {
   }
 }
 
-resource "helm_release" "tekton" {
+resource null_resource helm_tekton {
   depends_on = [local_file.tekton-values]
   count = var.mode != "setup" && var.cluster_type == "ocp4" ? 1 : 0
 
-  name              = "tekton"
-  chart             = local.chart_dir
-  namespace         = var.tools_namespace
-  timeout           = 1200
-  dependency_update = true
-  force_update      = true
-  replace           = true
+  provisioner "local-exec" {
+    command = "${path.module}/scripts/deploy-tekton.sh '${var.tools_namespace}' tekton '${local.chart_dir}'"
 
-  disable_openapi_validation = true
+    environment = {
+      KUBECONFIG = var.cluster_config_file_path
+    }
+  }
 }
 
 resource "null_resource" "wait-for-crd" {
-  depends_on = [helm_release.tekton]
+  depends_on = [null_resource.helm_tekton]
   count = var.mode != "setup" && var.cluster_type == "ocp4" ? 1 : 0
 
   provisioner "local-exec" {
@@ -128,7 +126,7 @@ resource "null_resource" "wait-for-crd" {
 }
 
 resource "null_resource" "delete-pipeline-sa" {
-  depends_on = [helm_release.tekton]
+  depends_on = [null_resource.helm_tekton]
 
   triggers = {
     NAMESPACE  = var.tools_namespace
