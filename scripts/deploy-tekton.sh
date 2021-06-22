@@ -7,7 +7,7 @@ CHART="$3"
 HELM=$(command -v helm || command -v ./bin/helm)
 
 if [[ -z "${HELM}" ]]; then
-  curl -Lo helm.tar.gz https://get.helm.sh/helm-v3.6.1-linux-amd64.tar.gz
+  curl -sLo helm.tar.gz https://get.helm.sh/helm-v3.6.1-linux-amd64.tar.gz
   tar xzf helm.tar.gz
   mkdir -p ./bin && mv ./linux-amd64/helm ./bin/helm
   rm -rf linux-amd64
@@ -16,5 +16,6 @@ if [[ -z "${HELM}" ]]; then
   HELM="$(cd ./bin; pwd -P)/helm"
 fi
 
-${HELM} template "${NAME}" "${CHART}" | \
-  kubectl apply --validate=false -n "${NAMESPACE}" -f -
+kubectl config set-context --current --namespace "${NAMESPACE}"
+
+${HELM} template "${NAME}" "${CHART}" | kubectl apply --validate=false -f -
