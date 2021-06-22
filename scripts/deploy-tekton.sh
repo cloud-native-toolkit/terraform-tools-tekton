@@ -16,5 +16,5 @@ if [[ -z "${HELM}" ]]; then
   HELM="$(cd ./bin; pwd -P)/helm"
 fi
 
-${HELM} template "${NAME}" "${CHART}" --namespace "${NAMESPACE}" | \
+${HELM} template "${NAME}" "${CHART}" | \
   kubectl apply --validate=false -n "${NAMESPACE}" -f -
