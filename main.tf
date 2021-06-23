@@ -103,11 +103,31 @@ resource null_resource helm_tekton {
   depends_on = [local_file.tekton-values]
   count = var.mode != "setup" && var.cluster_type == "ocp4" ? 1 : 0
 
+  triggers = {
+    namespace = var.tools_namespace
+    name = "tekton"
+    chart = local.chart_dir
+    kubeconfig = var.cluster_config_file_path
+    provision = var.provision
+  }
+
   provisioner "local-exec" {
-    command = "${path.module}/scripts/deploy-tekton.sh '${var.tools_namespace}' tekton '${local.chart_dir}'"
+    command = "${path.module}/scripts/deploy-helm.sh '${self.triggers.namespace}' '${self.triggers.name}' '${self.triggers.chart}'"
 
     environment = {
-      KUBECONFIG = var.cluster_config_file_path
+      KUBECONFIG = self.triggers.kubeconfig
+      PROVISION = self.triggers.provision
+    }
+  }
+
+  provisioner "local-exec" {
+    when = destroy
+
+    command = "${path.module}/scripts/destroy-helm.sh '${self.triggers.namespace}' '${self.triggers.name}' '${self.triggers.chart}'"
+
+    environment = {
+      KUBECONFIG = self.triggers.kubeconfig
+      PROVISION = self.triggers.provision
     }
   }
 }
