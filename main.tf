@@ -65,6 +65,7 @@ resource "null_resource" "setup-chart" {
 
 resource "null_resource" "read-console-host" {
   count = var.cluster_type == "ocp4" ? 1 : 0
+  depends_on = [null_resource.setup_dirs]
 
   provisioner "local-exec" {
     command = "kubectl get -n openshift-console route/console -o jsonpath='{.spec.host}' > ${local.console_host_file}"
