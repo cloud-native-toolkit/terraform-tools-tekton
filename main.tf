@@ -146,6 +146,19 @@ resource "null_resource" "wait-for-crd" {
   }
 }
 
+resource "null_resource" "wait-for-webhook" {
+  depends_on = [null_resource.wait-for-crd]
+  count = var.mode != "setup" && var.cluster_type == "ocp4" ? 1 : 0
+
+  provisioner "local-exec" {
+    command = "${path.module}/scripts/wait-for-webhook.sh '${var.tools_namespace}'"
+
+    environment = {
+      KUBECONFIG = var.cluster_config_file_path
+    }
+  }
+}
+
 resource "null_resource" "delete-pipeline-sa" {
   depends_on = [null_resource.helm_tekton]
 
