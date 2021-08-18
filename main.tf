@@ -151,7 +151,7 @@ resource "null_resource" "wait-for-webhook" {
   count = var.mode != "setup" && var.cluster_type == "ocp4" ? 1 : 0
 
   provisioner "local-exec" {
-    command = "${path.module}/scripts/wait-for-webhook.sh '${var.tools_namespace}'"
+    command = "${path.module}/scripts/wait-for-webhook.sh '${var.tools_namespace}' '${data.local_file.cluster_version.content}'"
 
     environment = {
       KUBECONFIG = var.cluster_config_file_path

@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 
 NAMESPACE="$1"
+VERSION="$2"
+
+if [[ "${VERSION}" =~ 4[.]6 ]]; then
+  echo "Cluster is 4.6 version of Openshift. No need to wait for webhook."
+  exit 0
+fi
 
 if [[ -z "${TMP_DIR}" ]]; then
   TMP_DIR=".tmp"
