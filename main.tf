@@ -27,6 +27,7 @@ locals {
     url = local.ingress_url
     applicationMenu = false
   }
+  ocp46 = length(regexall("4[.]6.*", data.local_file.cluster_version.content)) > 0
 }
 
 resource "null_resource" "setup_dirs" {
@@ -148,7 +149,7 @@ resource "null_resource" "wait-for-crd" {
 
 resource "null_resource" "wait-for-webhook" {
   depends_on = [null_resource.wait-for-crd]
-  count = var.mode != "setup" && var.cluster_type == "ocp4" ? 1 : 0
+  count = var.mode != "setup" && var.cluster_type == "ocp4" && !local.ocp46 ? 1 : 0
 
   provisioner "local-exec" {
     command = "${path.module}/scripts/wait-for-webhook.sh '${var.tools_namespace}'"
