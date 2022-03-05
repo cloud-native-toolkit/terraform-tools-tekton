@@ -25,7 +25,7 @@ fi
 
 count=0
 until [[ $(${BIN_DIR}/kubectl get crd -o custom-columns=name:.metadata.name | grep -c "tekton.dev") -gt 0 ]]; do
-  if [[ $count -eq 200 ]]; then
+  if [[ $count -eq 20 ]]; then
     echo "Timed out waiting for Tekton CRDs to be installed" >&2
     exit 1
   fi
