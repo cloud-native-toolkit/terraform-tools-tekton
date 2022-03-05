@@ -19,8 +19,7 @@ jobs:
       matrix:
         platform:
           - ocp4_latest
-          - ocp46
-      #      max-parallel: 1
+      #max-parallel: 1
       fail-fast: false
 
     env:
