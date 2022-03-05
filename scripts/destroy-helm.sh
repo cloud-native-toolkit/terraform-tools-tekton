@@ -28,9 +28,12 @@ if [[ -z "${HELM}" ]]; then
   exit 1
 fi
 
+# This is needed to work around helm error of mismatched namespaces
+${BIN_DIR}/kubectl config set-context --current --namespace "${NAMESPACE}"
+
 if [[ -n "${REPO}" ]]; then
   repo_config="--repo ${REPO}"
 fi
 
-${HELM} template "${NAME}" "${CHART}" ${repo_config} -n "${NAMESPACE}" --values "${VALUES_FILE}" | \
-  ${BIN_DIR}/kubectl delete -n "${NAMESPACE}" -f -
+${HELM} template "${NAME}" "${CHART}" ${repo_config} --values "${VALUES_FILE}" | \
+  ${BIN_DIR}/kubectl delete -f -

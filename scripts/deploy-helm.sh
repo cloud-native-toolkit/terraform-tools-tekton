@@ -28,10 +28,11 @@ if [[ -z "${HELM}" ]]; then
   exit 1
 fi
 
+${BIN_DIR}/kubectl config set-context --current --namespace "${NAMESPACE}"
+
 if [[ -n "${REPO}" ]]; then
   repo_config="--repo ${REPO}"
 fi
 
-${HELM} template "${NAME}" "${CHART}" ${repo_config} -n "${NAMESPACE}" --values "${VALUES_FILE}" | \
-  ${BIN_DIR}/kubectl apply --validate=false -n "${NAMESPACE}" -f -
-
+${HELM} template "${NAME}" "${CHART}" ${repo_config} --values "${VALUES_FILE}" | \
+  ${BIN_DIR}/kubectl apply --validate=false -f -
