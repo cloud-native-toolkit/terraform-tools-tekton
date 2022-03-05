@@ -109,7 +109,7 @@ data external tekton_ready {
   depends_on = [null_resource.helm_tekton]
   count = var.mode != "setup" ? 1 : 0
 
-  program = ["bash", "${path.module}/scripts/wait-for-crds.sh"]
+  program = ["bash", "${path.module}/scripts/wait-for-tekton.sh"]
 
   query = {
     bin_dir = module.setup_clis.bin_dir
