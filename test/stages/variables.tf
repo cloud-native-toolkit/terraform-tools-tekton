@@ -48,3 +48,9 @@ variable "vpc_cluster" {
   description = "Flag indicating that this is a vpc cluster"
   default     = false
 }
+
+variable "server_url" {
+}
+
+variable "ingress_subdomain" {
+}

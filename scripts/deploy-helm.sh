@@ -22,7 +22,7 @@ VALUES_FILE="${TMP_DIR}/${NAME}-values.yaml"
 
 echo "${VALUES_FILE_CONTENT}" > "${VALUES_FILE}"
 
-HELM=$(command -v helm || command -v ${BIN_DIR}/helm)
+HELM=$(command -v ${BIN_DIR}/helm || command -v helm)
 if [[ -z "${HELM}" ]]; then
   echo "Helm cli missing"
   exit 1
