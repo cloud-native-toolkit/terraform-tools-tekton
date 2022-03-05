@@ -9,7 +9,7 @@ if [[ -z "${BIN_DIR}" ]]; then
   BIN_DIR="/usr/local/bin"
 fi
 
-if ! command -v ${BIN_DIR}/oc; then
+if ! command -v ${BIN_DIR}/oc 1> /dev/null 2> /dev/null; then
   echo "OpenShift cli missing!" >&2
   exit 1
 fi
