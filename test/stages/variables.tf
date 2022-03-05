@@ -53,4 +53,5 @@ variable "server_url" {
 }
 
 variable "ingress_subdomain" {
+  default = ""
 }
