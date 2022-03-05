@@ -27,10 +27,6 @@ versions:
         - source: github.com/ibm-garage-cloud/terraform-k8s-olm
           version: ">= 1.0.0"
   variables:
-    - name: cluster_type
-      moduleRef:
-        id: cluster
-        output: platform.type_code
     - name: cluster_ingress_hostname
       moduleRef:
         id: cluster
