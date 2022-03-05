@@ -125,6 +125,7 @@ resource "null_resource" "delete-pipeline-sa" {
   depends_on = [null_resource.helm_tekton]
 
   triggers = {
+    BIN_DIR = module.setup_clis.bin_dir
     NAMESPACE  = var.tools_namespace
     KUBECONFIG = var.cluster_config_file_path
   }
@@ -132,7 +133,7 @@ resource "null_resource" "delete-pipeline-sa" {
   provisioner "local-exec" {
     when = destroy
 
-    command = "${module.setup_clis.bin_dir}/kubectl delete serviceaccount -n ${self.triggers.NAMESPACE} pipeline || exit 0"
+    command = "${self.triggers.BIN_DIR}/kubectl delete serviceaccount -n ${self.triggers.NAMESPACE} pipeline || exit 0"
 
     environment = {
       KUBECONFIG = self.triggers.KUBECONFIG
