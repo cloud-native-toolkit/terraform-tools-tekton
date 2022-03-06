@@ -69,6 +69,14 @@ resource "local_file" "tekton-values" {
   filename = "${local.chart_dir}/values.yaml"
 }
 
+resource null_resource "print_values" {
+  depends_on = [local_file.tekton-values]
+
+  provisioner "local-exec" {
+    command = "cat '${local_file.tekton-values.filename}'"
+  }
+}
+
 resource null_resource helm_tekton {
   depends_on = [local_file.tekton-values]
   count = var.mode != "setup" ? 1 : 0
