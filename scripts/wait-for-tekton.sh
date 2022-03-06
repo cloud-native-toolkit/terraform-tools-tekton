@@ -13,7 +13,7 @@ if [[ -z "${BIN_DIR}" ]]; then
   BIN_DIR="/usr/local/bin"
 fi
 
-if ! command -v ${BIN_DIR}/kubectl; then
+if ! command -v ${BIN_DIR}/kubectl 1> /dev/null 2> /dev/null; then
   echo "kubectl missing!" >&2
   exit 1
 fi
