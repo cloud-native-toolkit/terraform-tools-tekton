@@ -77,6 +77,6 @@ spec:
     backoffLimit: 1
 EOF
 
-${BIN_DIR}/kubectl wait --for=condition=complete --timeout=35m job/tekton-webhook-test 1> /dev/null
+${BIN_DIR}/kubectl wait --for=condition=complete -n "${NAMESPACE}" --timeout=35m job/tekton-webhook-test 1> /dev/null
 
 echo '{"message": "Tekton webhook created successfully"}'
