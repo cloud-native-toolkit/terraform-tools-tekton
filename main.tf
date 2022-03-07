@@ -1,21 +1,21 @@
 
 locals {
-  tmp_dir             = "${path.cwd}/.tmp"
-  dashboard_namespace = var.cluster_type == "ocp4" ? "openshift-pipelines" : "tekton-pipelines"
-  dashboard_file      = var.cluster_type == "ocp4" ? var.tekton_dashboard_yaml_file_ocp : var.tekton_dashboard_yaml_file_k8s
-  ingress_url         = var.cluster_type == "ocp4" ? "https://${data.local_file.console-host[0].content}/k8s/all-namespaces/tekton.dev~v1alpha1~Pipeline" : ""
-  console_host_file   = "${local.tmp_dir}/console.host"
+  tmp_dir             = data.external.setup_dirs.result.tmp_dir
+  cluster_type        = data.external.cluster_info.result.clusterType
+  cluster_version     = data.external.cluster_info.result.clusterVersion
+  console_host        = data.external.cluster_info.result.consoleHost
+  dashboard_namespace = local.cluster_type == "ocp4" ? "openshift-pipelines" : "tekton-pipelines"
+  ingress_url         = local.cluster_type == "ocp4" ? "https://${local.console_host}/k8s/all-namespaces/tekton.dev~v1alpha1~Pipeline" : ""
   gitops_dir          = var.gitops_dir != "" ? var.gitops_dir : "${path.cwd}/gitops"
   chart_name          = "tekton"
   chart_dir           = "${local.gitops_dir}/${local.chart_name}"
-  cluster_version_file = "${local.tmp_dir}/cluster.version"
   global_config       = {
     enabled = var.provision
-    clusterType = var.cluster_type
+    clusterType = local.cluster_type
     ingressSubdomain = var.cluster_ingress_hostname
   }
   tekton_operator_config  = {
-    clusterType = var.cluster_type
+    clusterType = local.cluster_type
     olmNamespace = var.olm_namespace
     operatorNamespace = var.operator_namespace
     app = "tekton"
@@ -29,58 +29,33 @@ locals {
   }
 }
 
-resource "null_resource" "setup_dirs" {
-  provisioner "local-exec" {
-    command = "mkdir -p ${local.tmp_dir}"
-  }
+module setup_clis {
+  source = "github.com/cloud-native-toolkit/terraform-util-clis.git"
 
-  provisioner "local-exec" {
-    command = "echo 'Provision tekton: ${var.provision}'"
+  clis = ["jq", "oc", "kubectl", "helm"]
+}
+
+data external setup_dirs {
+  program = ["bash", "${path.module}/scripts/setup-dirs.sh"]
+
+  query = {
+    tmp_dir = "${path.cwd}/.tmp/tekton"
   }
 }
 
-resource "null_resource" "cluster_version" {
-  depends_on = [null_resource.setup_dirs]
+data external cluster_info {
+  program = ["bash", "${path.module}/scripts/get-cluster-info.sh"]
 
-  provisioner "local-exec" {
-    command = "${path.module}/scripts/determine-cluster-version.sh > ${local.cluster_version_file}"
-
-    environment = {
-      KUBECONFIG = var.cluster_config_file_path
-    }
+  query = {
+    bin_dir     = module.setup_clis.bin_dir
+    kube_config = var.cluster_config_file_path
   }
-}
-
-data "local_file" "cluster_version" {
-  depends_on = [null_resource.cluster_version]
-
-  filename = local.cluster_version_file
 }
 
 resource "null_resource" "setup-chart" {
   provisioner "local-exec" {
     command = "mkdir -p ${local.chart_dir} && cp -R ${path.module}/chart/${local.chart_name}/* ${local.chart_dir}"
   }
-}
-
-resource "null_resource" "read-console-host" {
-  count = var.cluster_type == "ocp4" ? 1 : 0
-  depends_on = [null_resource.setup_dirs]
-
-  provisioner "local-exec" {
-    command = "kubectl get -n openshift-console route/console -o jsonpath='{.spec.host}' > ${local.console_host_file}"
-
-    environment = {
-      KUBECONFIG = var.cluster_config_file_path
-    }
-  }
-}
-
-data "local_file" "console-host" {
-  count = var.cluster_type == "ocp4" ? 1 : 0
-  depends_on = [null_resource.read-console-host]
-
-  filename = local.console_host_file
 }
 
 resource "local_file" "tekton-values" {
@@ -94,28 +69,32 @@ resource "local_file" "tekton-values" {
   filename = "${local.chart_dir}/values.yaml"
 }
 
-resource "null_resource" "print-values" {
+resource null_resource "print_values" {
+  depends_on = [local_file.tekton-values]
+
   provisioner "local-exec" {
-    command = "cat ${local_file.tekton-values.filename}"
+    command = "cat '${local_file.tekton-values.filename}'"
   }
 }
 
 resource null_resource helm_tekton {
   depends_on = [local_file.tekton-values]
-  count = var.mode != "setup" && var.cluster_type == "ocp4" ? 1 : 0
+  count = var.mode != "setup" ? 1 : 0
 
   triggers = {
+    bin_dir = module.setup_clis.bin_dir
     namespace = var.tools_namespace
     name = "tekton"
     chart = local.chart_dir
     kubeconfig = var.cluster_config_file_path
-    provision = var.provision
+    provision = var.provision && local.cluster_type == "ocp4"
   }
 
   provisioner "local-exec" {
     command = "${path.module}/scripts/deploy-helm.sh '${self.triggers.namespace}' '${self.triggers.name}' '${self.triggers.chart}'"
 
     environment = {
+      BIN_DIR = self.triggers.bin_dir
       KUBECONFIG = self.triggers.kubeconfig
       PROVISION = self.triggers.provision
     }
@@ -127,35 +106,26 @@ resource null_resource helm_tekton {
     command = "${path.module}/scripts/destroy-helm.sh '${self.triggers.namespace}' '${self.triggers.name}' '${self.triggers.chart}'"
 
     environment = {
+      BIN_DIR = self.triggers.bin_dir
       KUBECONFIG = self.triggers.kubeconfig
       PROVISION = self.triggers.provision
     }
   }
 }
 
-resource "null_resource" "wait-for-crd" {
+data external tekton_ready {
   depends_on = [null_resource.helm_tekton]
-  count = var.mode != "setup" && var.cluster_type == "ocp4" ? 1 : 0
+  count = var.mode != "setup" ? 1 : 0
 
-  provisioner "local-exec" {
-    command = "${path.module}/scripts/wait-for-crds.sh"
+  program = ["bash", "${path.module}/scripts/wait-for-tekton.sh"]
 
-    environment = {
-      KUBECONFIG = var.cluster_config_file_path
-    }
-  }
-}
-
-resource "null_resource" "wait-for-webhook" {
-  depends_on = [null_resource.wait-for-crd]
-  count = var.mode != "setup" && var.cluster_type == "ocp4" ? 1 : 0
-
-  provisioner "local-exec" {
-    command = "${path.module}/scripts/wait-for-webhook.sh '${var.tools_namespace}' '${data.local_file.cluster_version.content}'"
-
-    environment = {
-      KUBECONFIG = var.cluster_config_file_path
-    }
+  query = {
+    bin_dir = module.setup_clis.bin_dir
+    cluster_version = local.cluster_version
+    tekton_namespace = local.dashboard_namespace
+    tools_namespace = var.tools_namespace
+    cluster_type = local.cluster_type
+    kube_config = var.cluster_config_file_path
   }
 }
 
@@ -163,6 +133,7 @@ resource "null_resource" "delete-pipeline-sa" {
   depends_on = [null_resource.helm_tekton]
 
   triggers = {
+    BIN_DIR = module.setup_clis.bin_dir
     NAMESPACE  = var.tools_namespace
     KUBECONFIG = var.cluster_config_file_path
   }
@@ -170,7 +141,7 @@ resource "null_resource" "delete-pipeline-sa" {
   provisioner "local-exec" {
     when = destroy
 
-    command = "kubectl delete serviceaccount -n ${self.triggers.NAMESPACE} pipeline || exit 0"
+    command = "${self.triggers.BIN_DIR}/kubectl delete serviceaccount -n ${self.triggers.NAMESPACE} pipeline || exit 0"
 
     environment = {
       KUBECONFIG = self.triggers.KUBECONFIG
