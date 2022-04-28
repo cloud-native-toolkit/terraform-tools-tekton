@@ -9,11 +9,11 @@ VERSION=$(echo "${INPUT}" | grep "cluster_version" | sed -E 's/.*"cluster_versio
 TEKTON_NAMESPACE=$(echo "${INPUT}" | grep "tekton_namespace" | sed -E 's/.*"tekton_namespace": ?"([^"]*)".*/\1/g')
 NAMESPACE=$(echo "${INPUT}" | grep "tools_namespace" | sed -E 's/.*"tools_namespace": ?"([^"]*)".*/\1/g')
 
-if [[ -z "${BIN_DIR}" ]]; then
-  BIN_DIR="/usr/local/bin"
+if [[ -n "${BIN_DIR}" ]]; then
+  export PATH="${BIN_DIR}:${PATH}"
 fi
 
-if ! command -v ${BIN_DIR}/kubectl 1> /dev/null 2> /dev/null; then
+if ! command -v kubectl 1> /dev/null 2> /dev/null; then
   echo "kubectl missing!" >&2
   exit 1
 fi
@@ -24,7 +24,7 @@ if [[ "${CLUSTER_TYPE}" != "ocp4" ]]; then
 fi
 
 count=0
-until [[ $(${BIN_DIR}/kubectl get crd -o custom-columns=name:.metadata.name | grep -c "tekton.dev") -gt 0 ]]; do
+until [[ $(kubectl get crd -o custom-columns=name:.metadata.name | grep -c "tekton.dev") -gt 0 ]]; do
   if [[ $count -eq 40 ]]; then
     echo "Timed out waiting for Tekton CRDs to be installed" >&2
     exit 1
@@ -43,7 +43,7 @@ set -e
 
 URL="http://tekton-pipelines-webhook.${TEKTON_NAMESPACE}.svc:8080"
 
-cat <<EOF | ${BIN_DIR}/kubectl apply -n "${NAMESPACE}" -f - 1> /dev/null
+cat <<EOF | kubectl apply -n "${NAMESPACE}" -f - 1> /dev/null
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -77,6 +77,6 @@ spec:
     backoffLimit: 1
 EOF
 
-${BIN_DIR}/kubectl wait --for=condition=complete -n "${NAMESPACE}" --timeout=35m job/tekton-webhook-test 1> /dev/null
+kubectl wait --for=condition=complete -n "${NAMESPACE}" --timeout=35m job/tekton-webhook-test 1> /dev/null
 
 echo '{"message": "Tekton webhook created successfully"}'
