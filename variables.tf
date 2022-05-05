@@ -10,11 +10,6 @@ variable "cluster_ingress_hostname" {
   description = "Ingress hostname of the IKS cluster."
 }
 
-variable "tools_namespace" {
-  type        = string
-  description = "The namespace where tools are installed"
-}
-
 variable "tekton_dashboard_version" {
   type        = string
   description = "The tekton dashboard version to install"
@@ -48,19 +43,7 @@ variable "olm_namespace" {
 variable "operator_namespace" {
   type        = string
   description = "Namespace where operators will be installed"
-  default     = ""
-}
-
-variable "gitops_dir" {
-  type        = string
-  description = "Directory where the gitops repo content should be written"
-  default     = ""
-}
-
-variable "mode" {
-  type        = string
-  description = "The mode of operation for the module (setup)"
-  default     = ""
+  default     = "openshift-operators"
 }
 
 variable "provision" {

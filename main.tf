@@ -1,14 +1,14 @@
 
 locals {
-  tmp_dir             = data.external.setup_dirs.result.tmp_dir
+  tmp_dir             = "${path.cwd}/.tmp/tekton"
   cluster_type        = data.external.cluster_info.result.clusterType
   cluster_version     = data.external.cluster_info.result.clusterVersion
   console_host        = data.external.cluster_info.result.consoleHost
   dashboard_namespace = local.cluster_type == "ocp4" ? "openshift-pipelines" : "tekton-pipelines"
   ingress_url         = local.cluster_type == "ocp4" ? "https://${local.console_host}/k8s/all-namespaces/tekton.dev~v1alpha1~Pipeline" : ""
-  gitops_dir          = var.gitops_dir != "" ? var.gitops_dir : "${path.cwd}/gitops"
   chart_name          = "tekton"
-  chart_dir           = "${local.gitops_dir}/${local.chart_name}"
+  chart_dir           = "${path.module}/chart/${local.chart_name}"
+  created_by          = "tekton-${random_string.random.result}"
   global_config       = {
     enabled = var.provision
     clusterType = local.cluster_type
@@ -18,6 +18,7 @@ locals {
     clusterType = local.cluster_type
     olmNamespace = var.olm_namespace
     operatorNamespace = var.operator_namespace
+    createdBy = local.created_by
     app = "tekton"
     ocpCatalog = {
       channel = "stable"
@@ -25,7 +26,9 @@ locals {
   }
   tool_config = {
     url = local.ingress_url
+    name = "Tekton"
     applicationMenu = false
+    enableConsoleLink = false
   }
 }
 
@@ -35,12 +38,12 @@ module setup_clis {
   clis = ["jq", "oc", "kubectl", "helm"]
 }
 
-data external setup_dirs {
-  program = ["bash", "${path.module}/scripts/setup-dirs.sh"]
-
-  query = {
-    tmp_dir = "${path.cwd}/.tmp/tekton"
-  }
+resource "random_string" "random" {
+  length           = 16
+  lower            = true
+  number           = true
+  upper            = false
+  special          = false
 }
 
 data external cluster_info {
@@ -52,99 +55,75 @@ data external cluster_info {
   }
 }
 
-resource "null_resource" "setup-chart" {
-  provisioner "local-exec" {
-    command = "mkdir -p ${local.chart_dir} && cp -R ${path.module}/chart/${local.chart_name}/* ${local.chart_dir}"
+data external check_for_operator {
+  program = ["bash", "${path.module}/scripts/check-for-operator.sh"]
+
+  query = {
+    kube_config = var.cluster_config_file_path
+    namespace = var.operator_namespace
+    bin_dir = module.setup_clis.bin_dir
+    created_by = local.created_by
   }
 }
 
-resource "local_file" "tekton-values" {
-  depends_on = [null_resource.setup-chart]
-
-  content  = yamlencode({
-    global = local.global_config
-    tekton-operator = local.tekton_operator_config
-    tool-config = local.tool_config
-  })
-  filename = "${local.chart_dir}/values.yaml"
-}
-
-resource null_resource "print_values" {
-  depends_on = [local_file.tekton-values]
-
-  provisioner "local-exec" {
-    command = "cat '${local_file.tekton-values.filename}'"
-  }
-}
-
-resource null_resource helm_tekton {
-  depends_on = [local_file.tekton-values]
-  count = var.mode != "setup" ? 1 : 0
+resource null_resource tekton_operator_helm {
 
   triggers = {
-    bin_dir = module.setup_clis.bin_dir
-    namespace = var.tools_namespace
+    namespace = var.operator_namespace
     name = "tekton"
     chart = local.chart_dir
+    values_file_content = yamlencode({
+      global = local.global_config
+      tekton-operator = local.tekton_operator_config
+      tool-config = local.tool_config
+    })
     kubeconfig = var.cluster_config_file_path
-    provision = var.provision && local.cluster_type == "ocp4"
+    tmp_dir = local.tmp_dir
+    bin_dir = module.setup_clis.bin_dir
+    created_by = local.created_by
+    skip = data.external.check_for_operator.result.exists
   }
 
   provisioner "local-exec" {
     command = "${path.module}/scripts/deploy-helm.sh '${self.triggers.namespace}' '${self.triggers.name}' '${self.triggers.chart}'"
 
     environment = {
-      BIN_DIR = self.triggers.bin_dir
       KUBECONFIG = self.triggers.kubeconfig
-      PROVISION = self.triggers.provision
+      VALUES_FILE_CONTENT = self.triggers.values_file_content
+      TMP_DIR = self.triggers.tmp_dir
+      BIN_DIR = self.triggers.bin_dir
+      CREATED_BY = self.triggers.created_by
+      SKIP = self.triggers.skip
     }
   }
 
   provisioner "local-exec" {
     when = destroy
 
-    command = "${path.module}/scripts/destroy-helm.sh '${self.triggers.namespace}' '${self.triggers.name}' '${self.triggers.chart}'"
+    command = "${path.module}/scripts/destroy-operator.sh ${self.triggers.namespace} ${self.triggers.name} ${self.triggers.chart}"
 
     environment = {
-      BIN_DIR = self.triggers.bin_dir
       KUBECONFIG = self.triggers.kubeconfig
-      PROVISION = self.triggers.provision
+      VALUES_FILE_CONTENT = self.triggers.values_file_content
+      TMP_DIR = self.triggers.tmp_dir
+      BIN_DIR = self.triggers.bin_dir
+      CREATED_BY = self.triggers.created_by
+      SKIP = self.triggers.skip
     }
   }
 }
 
 data external tekton_ready {
-  depends_on = [null_resource.helm_tekton]
-  count = var.mode != "setup" ? 1 : 0
+  depends_on = [null_resource.tekton_operator_helm]
 
   program = ["bash", "${path.module}/scripts/wait-for-tekton.sh"]
 
   query = {
     bin_dir = module.setup_clis.bin_dir
     cluster_version = local.cluster_version
-    tekton_namespace = local.dashboard_namespace
-    tools_namespace = var.tools_namespace
+    namespace = var.operator_namespace
     cluster_type = local.cluster_type
     kube_config = var.cluster_config_file_path
-  }
-}
-
-resource "null_resource" "delete-pipeline-sa" {
-  depends_on = [null_resource.helm_tekton]
-
-  triggers = {
-    BIN_DIR = module.setup_clis.bin_dir
-    NAMESPACE  = var.tools_namespace
-    KUBECONFIG = var.cluster_config_file_path
-  }
-
-  provisioner "local-exec" {
-    when = destroy
-
-    command = "${self.triggers.BIN_DIR}/kubectl delete serviceaccount -n ${self.triggers.NAMESPACE} pipeline || exit 0"
-
-    environment = {
-      KUBECONFIG = self.triggers.KUBECONFIG
-    }
+    skip = data.external.check_for_operator.result.exists
   }
 }

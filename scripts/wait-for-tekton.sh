@@ -6,8 +6,8 @@ export KUBECONFIG=$(echo "${INPUT}" | grep "kube_config" | sed -E 's/.*"kube_con
 BIN_DIR=$(echo "${INPUT}" | grep "bin_dir" | sed -E 's/.*"bin_dir": ?"([^"]*)".*/\1/g')
 CLUSTER_TYPE=$(echo "${INPUT}" | grep "cluster_type" | sed -E 's/.*"cluster_type": ?"([^"]*)".*/\1/g')
 VERSION=$(echo "${INPUT}" | grep "cluster_version" | sed -E 's/.*"cluster_version": ?"([^"]*)".*/\1/g')
-TEKTON_NAMESPACE=$(echo "${INPUT}" | grep "tekton_namespace" | sed -E 's/.*"tekton_namespace": ?"([^"]*)".*/\1/g')
-NAMESPACE=$(echo "${INPUT}" | grep "tools_namespace" | sed -E 's/.*"tools_namespace": ?"([^"]*)".*/\1/g')
+NAMESPACE=$(echo "${INPUT}" | grep "namespace" | sed -E 's/.*"namespace": ?"([^"]*)".*/\1/g')
+SKIP=$(echo "${INPUT}" | grep "skip" | sed -E 's/.*"skip": ?"([^"]*)".*/\1/g')
 
 if [[ -n "${BIN_DIR}" ]]; then
   export PATH="${BIN_DIR}:${PATH}"
@@ -41,41 +41,21 @@ fi
 
 set -e
 
-URL="http://tekton-pipelines-webhook.${TEKTON_NAMESPACE}.svc:8080"
+if [[ "${SKIP}" == "true" ]]; then
+  echo '{"message": "Skipped tekton webhook check for existing install"}'
+  exit 0
+fi
 
-cat <<EOF | kubectl apply -n "${NAMESPACE}" -f - 1> /dev/null
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: tekton-webhook-test
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: tekton-webhook-test
-spec:
-    template:
-        spec:
-            serviceAccountName: tekton-webhook-test
-            initContainers:
-              - name: wait-for-tekton-webhook
-                image: quay.io/ibmgaragecloud/alpine-curl
-                imagePullPolicy: IfNotPresent
-                command: ["sh"]
-                args:
-                  - "-c"
-                  - "count=0; until curl -Iskf ${URL} || [[ \$count -eq 20 ]]; do echo \">>> waiting for ${URL}\"; sleep 90; count=\$((count + 1)); done; if [[ \$count -eq 20 ]]; then echo \"Timeout\"; exit 1; else echo \">>> Started\"; fi"
-            containers:
-                - name: tekton-webhook-started
-                  image: quay.io/ibmgaragecloud/alpine-curl
-                  imagePullPolicy: Always
-                  command: ["sh"]
-                  args:
-                    - "-c"
-                    - "curl -Iskf ${URL}"
-            restartPolicy: Never
-    backoffLimit: 1
-EOF
+count=0
+until kubectl get job/tekton-webhook-test -n "${NAMESPACE}" 1> /dev/null 2> /dev/null || [[ "${count}" -eq 10 ]]; do
+  count=$((count + 1))
+  sleep 30
+done
+
+if [[ "${count}" -eq 10 ]]; then
+  echo "Timed out waiting for tekton-webhook-test to start" >&2
+  exit 1
+fi
 
 kubectl wait --for=condition=complete -n "${NAMESPACE}" --timeout=35m job/tekton-webhook-test 1> /dev/null
 

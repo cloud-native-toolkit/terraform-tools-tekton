@@ -18,10 +18,6 @@ versions:
           version: ">= 1.0.0"
         - source: github.com/ibm-garage-cloud/terraform-k8s-ocp-cluster
           version: ">= 2.0.0"
-    - id: namespace
-      refs:
-        - source: github.com/ibm-garage-cloud/terraform-k8s-namespace
-          version: ">= 2.1.0"
     - id: olm
       refs:
         - source: github.com/ibm-garage-cloud/terraform-k8s-olm
@@ -35,11 +31,6 @@ versions:
       moduleRef:
         id: cluster
         output: config_file_path
-    - name: tools_namespace
-      moduleRef:
-        id: namespace
-        output: name
-        discriminator: tools
     - name: olm_namespace
       moduleRef:
         id: olm
@@ -56,7 +47,3 @@ versions:
       scope: ignore
     - name: tekton_dashboard_yaml_file_k8s
       scope: ignore
-    - name: gitops_dir
-      scope: global
-    - name: mode
-      scope: global

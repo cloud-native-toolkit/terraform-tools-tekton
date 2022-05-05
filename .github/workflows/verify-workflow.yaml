@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         testcase:
-          - ocp4_latest
+          - ocp4_9_gitops
       fail-fast: false
       max-parallel: 1
 
