@@ -28,8 +28,7 @@ SUBSCRIPTION_NAMESPACE=$(oc get subscription -A -o json | jq --arg NAME "${SUBSC
 SUBSCRIPTION_CREATED_BY=$(oc get subscription -A -o json | jq --arg NAME "${SUBSCRIPTION_NAME}" -r '.items[] | select(.spec.name == $NAME) | .metadata.labels["created-by"] // empty')
 
 ## check for CSV
-CSV_NAME="openshift-pipelines-operator-rh"
-CSV=$(oc get csv -n "${NAMESPACE}" -o json | jq -r '.items[] | .metadata.name // empty' | grep "${CSV_NAME}")
+CSV=$(oc get csv -n "${NAMESPACE}" -o json | jq -r '.items[] | .metadata.name' | grep "pipelines")
 
 ## check for CRD
 CRDS=$(oc get crd -o json | jq -r '.items[] | .metadata.name | select(. | test("tekton")) | .')
@@ -43,13 +42,13 @@ fi
 ## if subscription exists but CSV or CRDs not present or deployment not found then throw error
 if [[ -n "${SUBSCRIPTION}" ]]; then
   if [[ -z "${CSV}" ]]; then
-    echo "${CSV_NAME} not found in ${NAMESPACE} namespace" >&2
+    echo "${SUBSCRIPTION} exists but CSV not found in ${NAMESPACE} namespace" >&2
     exit 1
   elif [[ -z "${CRDS}" ]]; then
-    echo "Tekton crds not found" >&2
+    echo "${SUBSCRIPTION} subscription exists but Tekton crds not found" >&2
     exit 1
   elif [[ -z "${DEPLOYMENTS}" ]]; then
-    echo "Tekton deployment with label ${DEPLOYMENT_LABEL} not found" >&2
+    echo "${SUBSCRIPTION} subscription exists but Tekton deployment with label ${DEPLOYMENT_LABEL} not found" >&2
     exit 1
   fi
 

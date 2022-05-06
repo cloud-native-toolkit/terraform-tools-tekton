@@ -16,4 +16,4 @@ source "${SCRIPT_DIR}/validation-functions.sh"
 NAMESPACE="openshift-operators"
 
 check_k8s_resource "${NAMESPACE}" subscription openshift-pipelines-operator-rh
-check_k8s_resource "${NAMESPACE}" csv "openshift-pipelines-operator-rh.*"
+check_k8s_resource "${NAMESPACE}" csv "pipelines.*"
