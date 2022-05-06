@@ -74,6 +74,76 @@ versions:
         type: bool
         description: Flag indicating that Tekton should be provisioned
         default: true
+    version: v2.5.1
+    outputs:
+      - name: namespace
+        description: The namespace where Tekton dashboard was deployed
+  - platforms:
+      - ocp4
+    dependencies:
+      - id: cluster
+        refs:
+          - source: github.com/ibm-garage-cloud/terraform-ibm-container-platform
+            version: '>= 1.7.0'
+          - source: github.com/ibm-garage-cloud/terraform-ibm-ocp-vpc
+            version: '>= 1.0.0'
+          - source: github.com/ibm-garage-cloud/terraform-k8s-ocp-cluster
+            version: '>= 2.0.0'
+      - id: olm
+        refs:
+          - source: github.com/ibm-garage-cloud/terraform-k8s-olm
+            version: '>= 1.0.0'
+    variables:
+      - name: cluster_config_file_path
+        type: string
+        description: The path to the config file for the cluster
+        moduleRef:
+          id: cluster
+          output: config_file_path
+      - name: cluster_ingress_hostname
+        type: string
+        description: Ingress hostname of the IKS cluster.
+        moduleRef:
+          id: cluster
+          output: platform.ingress
+      - name: tekton_dashboard_version
+        type: string
+        description: The tekton dashboard version to install
+        default: v0.7.1
+        scope: ignore
+      - name: tekton_dashboard_namespace
+        type: string
+        description: The tekton dashboard version to install
+        default: openshift-pipelines
+        scope: ignore
+      - name: tekton_dashboard_yaml_file_ocp
+        type: string
+        description: The tekton dashboard yaml file for the release for openshift
+        default: openshift-tekton-dashboard-release.yaml
+        scope: ignore
+      - name: tekton_dashboard_yaml_file_k8s
+        type: string
+        description: The tekton dashboard yaml file for the release for kubernetes
+        default: tekton-dashboard-release.yaml
+        scope: ignore
+      - name: olm_namespace
+        type: string
+        description: Namespace where olm is installed
+        default: ''
+        moduleRef:
+          id: olm
+          output: olm_namespace
+      - name: operator_namespace
+        type: string
+        description: Namespace where operators will be installed
+        default: openshift-operators
+        moduleRef:
+          id: olm
+          output: target_namespace
+      - name: provision
+        type: bool
+        description: Flag indicating that Tekton should be provisioned
+        default: true
     version: v2.5.0
     outputs:
       - name: namespace
