@@ -1,6 +1,8 @@
 name: tekton
 type: terraform
 description: Module to install Tekton into a cluster
+interfaces:
+  - github.com/cloud-native-toolkit/automation-modules#tekton
 tags:
     - tools
     - devops
