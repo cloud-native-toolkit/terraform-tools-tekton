@@ -9,3 +9,13 @@ output "tekton_namespace" {
   value       = var.tekton_dashboard_namespace
   depends_on  = [data.external.tekton_ready]
 }
+
+output "skip" {
+  description = "Flag indicating that install was skipped because another version was already installed"
+  value       = data.external.check_for_operator.result.exists == "true"
+}
+
+output "exists" {
+  description = "Flag indicating that install was skipped because another version was already installed"
+  value       = data.external.check_for_operator.result.exists
+}

@@ -15,25 +15,22 @@ if [[ -n "${BIN_DIR}" ]]; then
   export PATH="${BIN_DIR}:${PATH}"
 fi
 
+SUBSCRIPTION_NAME="openshift-pipelines-operator-rh"
+SUBSCRIPTION=$(oc get subscription -n "${NAMESPACE}" -o json | jq --arg NAME "${SUBSCRIPTION_NAME}" -r '.items[] | select(.spec.name == $NAME) | .metadata.name // empty')
+CSV_NAME=$(oc get subscription -n "${NAMESPACE}" "${SUBSCRIPTION}" -o json | jq -r '.status.currentCSV // empty')
+
 echo "Uninstalling operator helm chart"
 "${SCRIPT_DIR}/destroy-helm.sh" "${NAMESPACE}" "${NAME}" "${CHART}"
 
-SUBSCRIPTION_NAME="openshift-pipelines-operator-rh"
-SUBSCRIPTION=$(oc get subscription -A -o json | jq --arg NAME "${SUBSCRIPTION_NAME}" -r '.items[] | select(.spec.name == $NAME) | .metadata.name // empty')
+SUBSCRIPTION2=$(oc get subscription -n "${NAMESPACE}" -o json | jq --arg NAME "${SUBSCRIPTION_NAME}" -r '.items[] | select(.spec.name == $NAME) | .metadata.name // empty')
 
-if [[ -z "${SUBSCRIPTION}" ]]; then
-  echo "Deleting CSVs"
-  SEARCH="${SUBSCRIPTION_NAME}.*"
+if ! oc get subscription -n "${NAMESPACE}" "${SUBSCRIPTION}" && [[ -n "${CSV_NAME}" ]]; then
+  echo "Deleting CSV in ${NAMESPACE}"
 
-  oc get csv -A -o json | jq --arg SEARCH "${SEARCH}" -c '.items[] | select(.metadata.name | test($SEARCH)) | {"name": .metadata.name, "namespace": .metadata.namespace}' | while read csv; do
-    name=$(echo "$csv" | jq -r '.name')
-    namespace=$(echo "$csv" | jq -r '.namespace')
+  oc delete csv "${CSV_NAME}" -n "${NAMESPACE}"
 
-    oc delete csv -n "${namespace}" "${name}" 2> /dev/null
-  done
-
-  echo "CSVs deleted"
+  echo "CSVs deleted from ${NAMESPACE}"
 else
-  echo "Subscription still installed"
+  echo "Subscription still installed with csv ${CSV_NAME}"
   oc get subscription -A
 fi

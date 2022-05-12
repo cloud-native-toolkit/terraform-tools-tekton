@@ -47,16 +47,16 @@ if [[ "${SKIP}" == "true" ]]; then
 fi
 
 count=0
-until kubectl get job/tekton-webhook-test -n "${NAMESPACE}" 1> /dev/null 2> /dev/null || [[ "${count}" -eq 10 ]]; do
+until kubectl get job/tekton-webhook-test -n "${NAMESPACE}" 1> /dev/null 2> /dev/null || [[ "${count}" -eq 5 ]]; do
   count=$((count + 1))
   sleep 30
 done
 
-if [[ "${count}" -eq 10 ]]; then
-  echo "Timed out waiting for tekton-webhook-test to start" >&2
-  exit 1
+if [[ "${count}" -eq 5 ]]; then
+  echo '{"message": "Timed out waiting for tekton-webhook-test to start", "status": "1"}'
+  exit 0
 fi
 
 kubectl wait --for=condition=complete -n "${NAMESPACE}" --timeout=35m job/tekton-webhook-test 1> /dev/null
 
-echo '{"message": "Tekton webhook created successfully"}'
+echo '{"message": "Tekton webhook created successfully", "status": "0"}'
