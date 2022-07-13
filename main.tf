@@ -113,17 +113,21 @@ resource null_resource tekton_operator_helm {
   }
 }
 
-data external tekton_ready {
+resource null_resource tekton_ready {
   depends_on = [null_resource.tekton_operator_helm]
 
-  program = ["bash", "${path.module}/scripts/wait-for-tekton.sh"]
+  provisioner "local-exec" {
+    command = "echo \"$INPUT\" | ${path.module}/scripts/wait-for-tekton.sh"
 
-  query = {
-    bin_dir = module.setup_clis.bin_dir
-    cluster_version = local.cluster_version
-    namespace = var.operator_namespace
-    cluster_type = local.cluster_type
-    kube_config = var.cluster_config_file_path
-    skip = data.external.check_for_operator.result.exists
+    environment = {
+      INPUT = jsonencode({
+        bin_dir = module.setup_clis.bin_dir
+        cluster_version = local.cluster_version
+        namespace = var.operator_namespace
+        cluster_type = local.cluster_type
+        kube_config = var.cluster_config_file_path
+        skip = data.external.check_for_operator.result.exists
+      })
+    }
   }
 }
