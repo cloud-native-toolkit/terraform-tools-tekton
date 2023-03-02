@@ -9,6 +9,7 @@ locals {
   chart_name          = "tekton"
   chart_dir           = "${path.module}/chart/${local.chart_name}"
   created_by          = "tekton-${random_string.random.result}"
+  pipeline_channel    = local.cluster_version == "4.8" ? "stable" : "latest"
   global_config       = {
     enabled = var.provision
     clusterType = local.cluster_type
@@ -21,7 +22,7 @@ locals {
     createdBy = local.created_by
     app = "tekton"
     ocpCatalog = {
-      channel = "stable"
+      channel = local.pipeline_channel
     }
   }
   tool_config = {
