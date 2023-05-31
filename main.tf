@@ -94,14 +94,14 @@ data external check_for_operator {
 resource null_resource tekton_operator_helm {
 
   triggers = {
-    namespace = var.operator_namespace
+    namespace = local.operator_namespace
     name = "tekton"
     chart = local.chart_dir
-    values_file_content = yamlencode({
+    values_file_content = nonsensitive(yamlencode({
       global = local.global_config
       tekton-operator = local.tekton_operator_config
       tool-config = local.tool_config
-    })
+    }))
     kubeconfig = var.cluster_config_file_path
     tmp_dir    = local.tmp_dir
     bin_dir    = local.bin_dir

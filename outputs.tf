@@ -1,12 +1,12 @@
 output "namespace" {
   description = "The namespace where Tekton dashboard was deployed"
-  value       = var.tekton_dashboard_namespace
+  value       = local.dashboard_namespace
   depends_on  = [null_resource.tekton_ready]
 }
 
 output "tekton_namespace" {
   description = "The namespace where Tekton dashboard was deployed"
-  value       = var.tekton_dashboard_namespace
+  value       = local.dashboard_namespace
   depends_on  = [null_resource.tekton_ready]
 }
 

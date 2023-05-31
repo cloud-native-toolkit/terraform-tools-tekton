@@ -13,7 +13,7 @@ export KUBECONFIG
 
 source "${SCRIPT_DIR}/validation-functions.sh"
 
-NAMESPACE="openshift-operators"
+NAMESPACE=$(cat .namespace)
 
 check_k8s_resource "${NAMESPACE}" subscription openshift-pipelines-operator-rh
 check_k8s_resource "${NAMESPACE}" csv "pipelines.*"

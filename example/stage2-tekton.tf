@@ -17,3 +17,8 @@ resource local_file exists {
   content = module.dev_tools_tekton.exists
 }
 
+resource "null_resource" "output_values" {
+  provisioner "local-exec" {
+    command = "echo -n '${module.dev_tools_tekton.namespace}' > .namespace"
+  }
+}
