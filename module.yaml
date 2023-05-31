@@ -11,6 +11,10 @@ tags:
 versions:
 - platforms:
     - ocp4
+    - kubernetes
+  providers:
+    - name: clis
+      source: "cloud-native-toolkit/clis"
   dependencies:
     - id: cluster
       refs:

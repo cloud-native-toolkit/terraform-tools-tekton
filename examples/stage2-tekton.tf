@@ -1,8 +1,8 @@
 module "dev_tools_tekton" {
   source = "./module"
 
-  cluster_config_file_path = module.dev_cluster.config_file_path
-  cluster_ingress_hostname = module.dev_cluster.platform.ingress
+  cluster_config_file_path = module.cluster.config_file_path
+  cluster_ingress_hostname = module.cluster.platform.ingress
 }
 
 resource local_file skip {
