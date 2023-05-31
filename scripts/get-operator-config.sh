@@ -40,12 +40,10 @@ if [[ $count -gt 20 ]]; then
   exit 1
 fi
 
-RH_NAME='"openshift-pipelines-operator-rh"'
-KUBE_NAME='"tektoncd-operator"'
-export PACKAGE_NAMES="[$RH_NAME,$KUBE_NAME]"
+export PACKAGE_NAMES='["openshift-pipelines-operator-rh","tektoncd-operator"]'
 
 PACKAGE_MANIFEST=$(kubectl get packagemanifest -A -o json | jq --argjson packages "$PACKAGE_NAMES" '[.items[] | select(any(.status.packageName ; contains($packages[]))) | {"catalogSource":.status.catalogSource,"catalogSourceNamespace":.status.catalogSourceNamespace,"packageName":.status.packageName,"defaultChannel":.status.defaultChannel}]')
-kubectl get packagemanifest -A -o json | jq --argjson packages "$PACKAGE_NAMES" '[.items[] | select(any(.status.packageName ; contains($packages[]))) | {"catalogSource":.status.catalogSource,"catalogSourceNamespace":.status.catalogSourceNamespace,"packageName":.status.packageName,"defaultChannel":.status.defaultChannel}]'
+kubectl get packagemanifest -A -o json | jq --argjson packages "$PACKAGE_NAMES" '[.items[] | select(any(.status.packageName ; contains($packages[]))) | {"catalogSource":.status.catalogSource,"catalogSourceNamespace":.status.catalogSourceNamespace,"packageName":.status.packageName,"defaultChannel":.status.defaultChannel}]' >&2
 
 for name in $(echo "$PACKAGE_NAMES" | jq -r '.[]'); do
   OPERATOR_CONFIG=$(echo "${PACKAGE_MANIFEST}" | jq -c --arg name "$name" '.[] | select(.packageName == $name)')
