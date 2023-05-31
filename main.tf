@@ -83,7 +83,7 @@ data external check_for_operator {
   query = {
     bin_dir     = local.bin_dir
     kube_config = var.cluster_config_file_path
-    namespace   = var.operator_namespace
+    namespace   = local.operator_namespace
     name        = data.external.get_operator_config.result.packageName
     created_by  = local.created_by
     crd         = "tektonconfig"
@@ -148,7 +148,7 @@ resource null_resource tekton_ready {
       INPUT = jsonencode({
         bin_dir = local.bin_dir
         cluster_version = local.cluster_version
-        namespace = var.operator_namespace
+        namespace = local.operator_namespace
         cluster_type = local.cluster_type
         kube_config = var.cluster_config_file_path
         skip = data.external.check_for_operator.result.exists
