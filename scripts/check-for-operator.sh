@@ -8,8 +8,8 @@ if [[ -n "${BIN_DIR}" ]]; then
   export PATH="${BIN_DIR}:${PATH}"
 fi
 
-if ! command -v oc 1> /dev/null 2> /dev/null; then
-  echo "oc cli not found" >&2
+if ! command -v kubectl 1> /dev/null 2> /dev/null; then
+  echo "kubectl cli not found" >&2
   exit 1
 fi
 
@@ -27,7 +27,7 @@ TITLE=$(echo "${INPUT}" | jq -r '.title')
 
 
 ## check for Subscription
-SUBSCRIPTION_DATA=$(oc get subscription -A -o json | jq --arg NAME "${SUBSCRIPTION_NAME}" -c '.items[] | select(.spec.name == $NAME)')
+SUBSCRIPTION_DATA=$(kubectl get subscription -A -o json | jq --arg NAME "${SUBSCRIPTION_NAME}" -c '.items[] | select(.spec.name == $NAME)')
 
 if [[ -z "${SUBSCRIPTION_DATA}" ]]; then
   echo "Unable to find subscription with name: ${SUBSCRIPTION_NAME}" >&2
@@ -50,15 +50,15 @@ if [[ -z "${CURRENT_CSV}" ]]; then
 fi
 
 ## check for CSV
-CSV=$(oc get csv -n "${SUBSCRIPTION_NAMESPACE}" "${CURRENT_CSV}" -o json | jq -r '.metadata.name // empty')
+CSV=$(kubectl get csv -n "${SUBSCRIPTION_NAMESPACE}" "${CURRENT_CSV}" -o json | jq -r '.metadata.name // empty')
 
 ## check for CRD
-CRDS=$(oc get crd -o json | jq -r --arg name "${CRD_NAME}" '.items[] | .metadata.name | select(. | test($name)) | .')
+CRDS=$(kubectl get crd -o json | jq -r --arg name "${CRD_NAME}" '.items[] | .metadata.name | select(. | test($name)) | .')
 
 ## check for operator deployment
 DEPLOYMENT_LABEL="olm.owner=${CSV}"
 if [[ -n "${CSV}" ]]; then
-  DEPLOYMENT=$(oc get deployment -n "${NAMESPACE}" -l "${DEPLOYMENT_LABEL}" -o json | jq -r '.items[] | .metadata.name')
+  DEPLOYMENT=$(kubectl get deployment -n "${NAMESPACE}" -l "${DEPLOYMENT_LABEL}" -o json | jq -r '.items[] | .metadata.name')
 fi
 
 ## if subscription exists but CSV or CRDs not present or deployment not found then throw error
@@ -70,11 +70,11 @@ if [[ -n "${SUBSCRIPTION}" ]]; then
     echo "${TITLE} crds not found" >&2
     exit 1
   elif [[ -z "${DEPLOYMENT}" ]]; then
-    echo "${TITLE} deployment with label ${DEPLOYMENT_LABEL} not found" >&2
+    echo "${TITLE} deployment with label ${DEPLOYMENT_LABEL} not found in ${NAMESPACE} namespace" >&2
     exit 1
   fi
 
-  CONDITIONS=$(oc get subscription -n "${SUBSCRIPTION_NAMESPACE}" "${SUBSCRIPTION}" -o json | \
+  CONDITIONS=$(kubectl get subscription -n "${SUBSCRIPTION_NAMESPACE}" "${SUBSCRIPTION}" -o json | \
     jq -c '.status.conditions[] | select(.status == "True") | .message // empty')
 
   if [[ -n "${CONDITIONS}" ]]; then
