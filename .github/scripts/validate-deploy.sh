@@ -17,7 +17,14 @@ NAMESPACE=$(cat .namespace)
 SUBSCRIPTION_NAME=$(cat .subscription_name)
 
 check_k8s_resource "${NAMESPACE}" subscription "${SUBSCRIPTION_NAME}"
-check_k8s_resource "${NAMESPACE}" csv "pipelines.*"
+CURRENT_CSV=$(kubectl get subscription -n "${NAMESPACE}" "${SUBSCRIPTION_NAME}" -o json | jq -r '.status.currentCSV // empty')
+
+if [[ -z "${CURRENT_CSV}" ]]; then
+  echo "Current csv not found" >&2
+  exit 1
+fi
+
+check_k8s_resource "${NAMESPACE}" csv "${CURRENT_CSV}"
 
 SKIP=$(cat .skip)
 EXISTS=$(cat .exists)
