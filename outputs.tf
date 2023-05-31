@@ -1,6 +1,6 @@
 output "namespace" {
   description = "The namespace where Tekton dashboard was deployed"
-  value       = local.dashboard_namespace
+  value       = local.operator_namespace
   depends_on  = [null_resource.tekton_ready]
 }
 
