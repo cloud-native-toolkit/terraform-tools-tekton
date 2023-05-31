@@ -21,9 +21,6 @@ resource "null_resource" "output_values" {
   provisioner "local-exec" {
     command = "echo -n '${module.dev_tools_tekton.namespace}' > .namespace"
   }
-}
-
-resource "null_resource" "output_values" {
   provisioner "local-exec" {
     command = "echo -n '${module.dev_tools_tekton.subscription_name}' > .subscription_name"
   }
