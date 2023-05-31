@@ -14,12 +14,19 @@ export KUBECONFIG
 source "${SCRIPT_DIR}/validation-functions.sh"
 
 NAMESPACE=$(cat .namespace)
+SUBSCRIPTION_NAME=$(cat .subscription_name)
 
-check_k8s_resource "${NAMESPACE}" subscription openshift-pipelines-operator-rh
+check_k8s_resource "${NAMESPACE}" subscription "${SUBSCRIPTION_NAME}"
 check_k8s_resource "${NAMESPACE}" csv "pipelines.*"
 
 SKIP=$(cat .skip)
 EXISTS=$(cat .exists)
+
+if [[ $(oc get tektonconfig -o json | jq '.items | length') -eq 0 ]]; then
+  echo "Tekton config not found" >&2
+  exit 1
+fi
+kubectl get tektonconfig -o yaml
 
 echo "Module results: skip=${SKIP}, exists=${EXISTS}"
 
