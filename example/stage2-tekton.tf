@@ -1,5 +1,5 @@
 module "dev_tools_tekton" {
-  source = "./module"
+  source = "../"
 
   cluster_config_file_path = module.cluster.config_file_path
   cluster_ingress_hostname = module.cluster.platform.ingress
