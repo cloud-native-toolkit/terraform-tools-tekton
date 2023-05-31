@@ -26,14 +26,14 @@ fi
 
 check_k8s_resource "${NAMESPACE}" csv "${CURRENT_CSV}"
 
-SKIP=$(cat .skip)
-EXISTS=$(cat .exists)
-
 if [[ $(oc get tektonconfig -o json | jq '.items | length') -eq 0 ]]; then
   echo "Tekton config not found" >&2
   exit 1
 fi
 kubectl get tektonconfig -o yaml
+
+SKIP=$(cat .skip)
+EXISTS=$(cat .exists)
 
 echo "Module results: skip=${SKIP}, exists=${EXISTS}"
 
