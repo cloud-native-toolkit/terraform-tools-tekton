@@ -151,7 +151,7 @@ resource null_resource tekton_ready {
       INPUT = jsonencode({
         bin_dir = local.bin_dir
         cluster_version = local.cluster_version
-        namespace = local.operator_namespace
+        namespace = local.dashboard_namespace
         cluster_type = local.cluster_type
         kube_config = var.cluster_config_file_path
         skip = data.external.check_for_operator.result.exists
