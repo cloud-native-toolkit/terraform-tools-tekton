@@ -4,6 +4,11 @@
 
 Module to install TektonCD in an OpenShift or Kubernetes cluster.
 
+**Note:** At the moment, because of a lag in the version of the Tekton operator available in the OperatorHub catalog, 
+this module (and the OperatorHub Tekton operator) only supports Kubernetes version < 1.25. This
+[issue](https://github.com/k8s-operatorhub/community-operators/issues/2837) tracks the fix. Once addressed, this module
+will automatically support Kubernetes versions >= 1.25 without update.
+
 ## Software dependencies
 
 The module depends on the following software components:
