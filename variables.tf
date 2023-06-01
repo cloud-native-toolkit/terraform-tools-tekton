@@ -10,30 +10,6 @@ variable "cluster_ingress_hostname" {
   description = "Ingress hostname of the IKS cluster."
 }
 
-variable "tekton_dashboard_version" {
-  type        = string
-  description = "The tekton dashboard version to install"
-  default     = "v0.7.1"
-}
-
-variable "tekton_dashboard_namespace" {
-  type        = string
-  description = "The tekton dashboard version to install"
-  default     = "openshift-pipelines"
-}
-
-variable "tekton_dashboard_yaml_file_ocp" {
-  type        = string
-  description = "The tekton dashboard yaml file for the release for openshift"
-  default     = "openshift-tekton-dashboard-release.yaml"
-}
-
-variable "tekton_dashboard_yaml_file_k8s" {
-  type        = string
-  description = "The tekton dashboard yaml file for the release for kubernetes"
-  default     = "tekton-dashboard-release.yaml"
-}
-
 variable "olm_namespace" {
   type        = string
   description = "Namespace where olm is installed"

@@ -3,6 +3,8 @@ module "dev_tools_tekton" {
 
   cluster_config_file_path = module.cluster.config_file_path
   cluster_ingress_hostname = module.cluster.platform.ingress
+  olm_namespace            = module.olm.olm_namespace
+  operator_namespace       = module.olm.target_namespace
 }
 
 resource local_file skip {
