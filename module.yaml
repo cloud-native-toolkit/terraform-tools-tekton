@@ -40,11 +40,3 @@ versions:
       moduleRef:
         id: olm
         output: target_namespace
-    - name: tekton_dashboard_version
-      scope: ignore
-    - name: tekton_dashboard_namespace
-      scope: ignore
-    - name: tekton_dashboard_yaml_file_ocp
-      scope: ignore
-    - name: tekton_dashboard_yaml_file_k8s
-      scope: ignore
