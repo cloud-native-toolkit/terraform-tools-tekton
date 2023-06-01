@@ -31,7 +31,7 @@ SUBSCRIPTION_DATA=$(kubectl get subscription -A -o json | jq --arg NAME "${SUBSC
 
 if [[ -z "${SUBSCRIPTION_DATA}" ]]; then
   echo "Unable to find subscription with name: ${SUBSCRIPTION_NAME}" >&2
-  echo '{"exists": "false"}'
+  echo "{\"exists\": \"false\", \"message\": \"Unable to find subscription with name: ${SUBSCRIPTION_NAME}\"}"
   exit 0
 fi
 

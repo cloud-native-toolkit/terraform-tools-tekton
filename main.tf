@@ -62,6 +62,12 @@ data external get_operator_config {
   }
 }
 
+resource null_resource print_operator_config {
+  provisioner "local-exec" {
+    command = "echo '${jsonencode(data.external.get_operator_config.result)}'"
+  }
+}
+
 resource "random_string" "random" {
   length           = 16
   lower            = true
@@ -79,6 +85,12 @@ data external cluster_info {
   }
 }
 
+resource null_resource print_cluster_info {
+  provisioner "local-exec" {
+    command = "echo '${jsonencode(data.external.cluster_info.result)}'"
+  }
+}
+
 data external check_for_operator {
   program = ["bash", "${path.module}/scripts/check-for-operator.sh"]
 
@@ -90,6 +102,12 @@ data external check_for_operator {
     created_by  = local.created_by
     crd         = "tektonconfig"
     title       = "Tekton"
+  }
+}
+
+resource null_resource print_check_for_operator {
+  provisioner "local-exec" {
+    command = "echo '${jsonencode(data.external.check_for_operator.result)}'"
   }
 }
 
