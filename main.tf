@@ -38,7 +38,7 @@ locals {
       channel = data.external.get_operator_config.result.defaultChannel
     }
     webhookName = local.webhook_name
-    tektonNamespace = local.operator_namespace
+    tektonNamespace = local.dashboard_namespace
   }
   tool_config = {
     url = local.ingress_url
