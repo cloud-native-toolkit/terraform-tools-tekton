@@ -7,6 +7,7 @@ locals {
   cluster_version     = data.external.cluster_info.result.clusterVersion
   console_host        = data.external.cluster_info.result.consoleHost
   operator_namespace  = local.openshift_cluster ? "openshift-operators" : "operators"
+  webhook_name        = local.openshift_cluster ? "tekton-pipelines-webhook" : "tekton-operator-webhook"
   dashboard_namespace = local.cluster_type == "ocp4" ? "openshift-pipelines" : "tekton-pipelines"
   ingress_url         = local.cluster_type == "ocp4" ? "https://${local.console_host}/k8s/all-namespaces/tekton.dev~v1alpha1~Pipeline" : ""
   chart_name          = "tekton"
@@ -36,7 +37,8 @@ locals {
       name    = data.external.get_operator_config.result.packageName
       channel = data.external.get_operator_config.result.defaultChannel
     }
-    tektonNamespace = local.dashboard_namespace
+    webhookName = local.webhook_name
+    tektonNamespace = local.operator_namespace
   }
   tool_config = {
     url = local.ingress_url
