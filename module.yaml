@@ -11,19 +11,18 @@ tags:
 versions:
 - platforms:
     - ocp4
+    - kubernetes
+  providers:
+    - name: clis
+      source: "cloud-native-toolkit/clis"
   dependencies:
     - id: cluster
-      refs:
-        - source: github.com/ibm-garage-cloud/terraform-ibm-container-platform
-          version: ">= 1.7.0"
-        - source: github.com/ibm-garage-cloud/terraform-ibm-ocp-vpc
-          version: ">= 1.0.0"
-        - source: github.com/ibm-garage-cloud/terraform-k8s-ocp-cluster
-          version: ">= 2.0.0"
+      interface: github.com/cloud-native-toolkit/automation-modules#cluster
+      refs: []
     - id: olm
       refs:
         - source: github.com/ibm-garage-cloud/terraform-k8s-olm
-          version: ">= 1.0.0"
+          version: ">= 2.0.0"
   variables:
     - name: cluster_ingress_hostname
       moduleRef:
@@ -41,11 +40,3 @@ versions:
       moduleRef:
         id: olm
         output: target_namespace
-    - name: tekton_dashboard_version
-      scope: ignore
-    - name: tekton_dashboard_namespace
-      scope: ignore
-    - name: tekton_dashboard_yaml_file_ocp
-      scope: ignore
-    - name: tekton_dashboard_yaml_file_k8s
-      scope: ignore

@@ -22,7 +22,7 @@ appVersion: 1.16.0
 
 dependencies:
   - name: tekton-operator
-    version: 0.3.2
+    version: 0.3.3
     repository: https://charts.cloudnativetoolkit.dev/
     condition: global.enabled
   - name: tool-config

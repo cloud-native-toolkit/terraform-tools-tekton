@@ -13,10 +13,24 @@ export KUBECONFIG
 
 source "${SCRIPT_DIR}/validation-functions.sh"
 
-NAMESPACE="openshift-operators"
+NAMESPACE=$(cat .namespace)
+SUBSCRIPTION_NAME=$(cat .subscription_name)
 
-check_k8s_resource "${NAMESPACE}" subscription openshift-pipelines-operator-rh
-check_k8s_resource "${NAMESPACE}" csv "pipelines.*"
+check_k8s_resource "${NAMESPACE}" subscription "${SUBSCRIPTION_NAME}"
+CURRENT_CSV=$(kubectl get subscription -n "${NAMESPACE}" "${SUBSCRIPTION_NAME}" -o json | jq -r '.status.currentCSV // empty')
+
+if [[ -z "${CURRENT_CSV}" ]]; then
+  echo "Current csv not found" >&2
+  exit 1
+fi
+
+check_k8s_resource "${NAMESPACE}" csv "${CURRENT_CSV}"
+
+if [[ $(oc get tektonconfig -o json | jq '.items | length') -eq 0 ]]; then
+  echo "Tekton config not found" >&2
+  exit 1
+fi
+kubectl get tektonconfig -o yaml
 
 SKIP=$(cat .skip)
 EXISTS=$(cat .exists)

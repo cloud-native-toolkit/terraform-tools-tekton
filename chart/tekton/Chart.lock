@@ -1,9 +1,9 @@
 dependencies:
 - name: tekton-operator
   repository: https://charts.cloudnativetoolkit.dev/
-  version: 0.3.2
+  version: 0.3.3
 - name: tool-config
   repository: https://charts.cloudnativetoolkit.dev/
   version: 0.13.0
-digest: sha256:bacb2bb591345d844bbe3a3798eac034a16c1525910892295f18f82819ad289e
-generated: "2022-05-12T15:10:13.409598-05:00"
+digest: sha256:bde1f8b94ff18e2fe5e4d0ccc48d3deeb5702ded4a791aa50938eaa4f1689541
+generated: "2023-05-31T18:31:29.546844-05:00"
