@@ -4,6 +4,18 @@ output "namespace" {
   depends_on  = [null_resource.tekton_ready]
 }
 
+output "operator_namespace" {
+  description = "The namespace where the subscription for the Tekton operator was created"
+  value       = local.operator_namespace
+  depends_on  = [null_resource.tekton_ready]
+}
+
+output "operator_name" {
+  description = "The name of the subscription for the Tekton operator"
+  value       = data.external.get_operator_config.result.packageName
+  depends_on  = [null_resource.tekton_ready]
+}
+
 output "subscription_name" {
   description = "The name of the subscription for the Tekton operator"
   value       = data.external.get_operator_config.result.packageName
