@@ -53,6 +53,73 @@ versions:
         type: bool
         description: Flag indicating that Tekton should be provisioned
         default: true
+    version: v3.1.0
+    outputs:
+      - name: namespace
+        description: The namespace where Tekton dashboard was deployed
+      - name: operator_namespace
+        description: >-
+          The namespace where the subscription for the Tekton operator was
+          created
+      - name: operator_name
+        description: The name of the subscription for the Tekton operator
+      - name: subscription_name
+        description: The name of the subscription for the Tekton operator
+      - name: tekton_namespace
+        description: The namespace where Tekton dashboard was deployed
+      - name: skip
+        description: >-
+          Flag indicating that install was skipped because another version was
+          already installed
+      - name: exists
+        description: >-
+          Flag indicating that install was skipped because another version was
+          already installed
+  - platforms:
+      - ocp4
+      - kubernetes
+    providers:
+      - name: clis
+        source: cloud-native-toolkit/clis
+    dependencies:
+      - id: cluster
+        interface: github.com/cloud-native-toolkit/automation-modules#cluster
+        refs: []
+      - id: olm
+        refs:
+          - source: github.com/ibm-garage-cloud/terraform-k8s-olm
+            version: '>= 2.0.0'
+    variables:
+      - name: cluster_config_file_path
+        type: string
+        description: The path to the config file for the cluster
+        moduleRef:
+          id: cluster
+          output: config_file_path
+      - name: cluster_ingress_hostname
+        type: string
+        description: Ingress hostname of the IKS cluster.
+        moduleRef:
+          id: cluster
+          output: platform.ingress
+      - name: olm_namespace
+        type: string
+        description: Namespace where olm is installed
+        default: ''
+        moduleRef:
+          id: olm
+          output: olm_namespace
+      - name: operator_namespace
+        type: string
+        description: Namespace where operators will be installed
+        default: openshift-operators
+        moduleRef:
+          id: olm
+          output: target_namespace
+      - name: provision
+        type: bool
+        description: Flag indicating that Tekton should be provisioned
+        default: true
     version: v3.0.1
     outputs:
       - name: namespace
