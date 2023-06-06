@@ -19,17 +19,17 @@ fi
 echo "Uninstalling operator helm chart"
 "${SCRIPT_DIR}/destroy-helm.sh" "${NAMESPACE}" "${NAME}" "${CHART}"
 
-SUBSCRIPTION=$(oc get subscription -A -o json | jq --arg NAME "${SUBSCRIPTION_NAME}" -r '.items[] | select(.spec.name == $NAME) | .metadata.name // empty')
+SUBSCRIPTION=$(kubectl get subscription -A -o json | jq --arg NAME "${SUBSCRIPTION_NAME}" -r '.items[] | select(.spec.name == $NAME) | .metadata.name // empty')
 
 if [[ -z "${SUBSCRIPTION}" ]]; then
   echo "Deleting CSVs"
   SEARCH="${SUBSCRIPTION_NAME}.*"
 
-  oc get csv -n "${NAMESPACE}" -o json | jq --arg SEARCH "${SEARCH}" -c '.items[] | select(.metadata.name | test($SEARCH)) | {"name": .metadata.name, "namespace": .metadata.namespace}' | while read csv; do
+  kubectl get csv -n "${NAMESPACE}" -o json | jq --arg SEARCH "${SEARCH}" -c '.items[] | select(.metadata.name | test($SEARCH)) | {"name": .metadata.name, "namespace": .metadata.namespace}' | while read csv; do
     name=$(echo "$csv" | jq -r '.name')
     namespace=$(echo "$csv" | jq -r '.namespace')
 
-    oc delete csv -n "${namespace}" "${name}" 2> /dev/null
+    kubectl delete csv -n "${namespace}" "${name}" 2> /dev/null
   done
 
   echo "CSVs deleted"

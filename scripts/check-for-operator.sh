@@ -52,7 +52,7 @@ fi
 CSV_NAME=$(echo "${CURRENT_CSV}" | sed -E "s/[.]?v?[0-9][.][0-9][.][0-9]//g")
 
 ## check for CSV
-CSV=$(oc get csv -n "${SUBSCRIPTION_NAMESPACE}" -o json | jq -r --arg NAME "${CSV_NAME}" '.items[] | select(.metadata.name | test($NAME)) | .metadata.name // empty')
+CSV=$(kubectl get csv -n "${SUBSCRIPTION_NAMESPACE}" -o json | jq -r --arg NAME "${CSV_NAME}" '.items[] | select(.metadata.name | test($NAME)) | .metadata.name // empty')
 
 ## check for CRD
 CRDS=$(kubectl get crd -o json | jq -r --arg name "${CRD_NAME}" '.items[] | .metadata.name | select(. | test($name)) | .')
