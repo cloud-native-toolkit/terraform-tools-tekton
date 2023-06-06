@@ -49,8 +49,10 @@ if [[ -z "${CURRENT_CSV}" ]]; then
   exit 1
 fi
 
+CSV_NAME=$(echo "${CURRENT_CSV}" | sed -E "s/[.]?v?[0-9][.][0-9][.][0-9]//g")
+
 ## check for CSV
-CSV=$(kubectl get csv -n "${SUBSCRIPTION_NAMESPACE}" "${CURRENT_CSV}" -o json | jq -r '.metadata.name // empty')
+CSV=$(oc get csv -n "${SUBSCRIPTION_NAMESPACE}" -o json | jq -r --arg NAME "${CSV_NAME}" '.items[] | select(.metadata.name | test($NAME)) | .metadata.name // empty')
 
 ## check for CRD
 CRDS=$(kubectl get crd -o json | jq -r --arg name "${CRD_NAME}" '.items[] | .metadata.name | select(. | test($name)) | .')
@@ -64,7 +66,7 @@ fi
 ## if subscription exists but CSV or CRDs not present or deployment not found then throw error
 if [[ -n "${SUBSCRIPTION}" ]]; then
   if [[ -z "${CSV}" ]]; then
-    echo "${CURRENT_CSV} not found in ${NAMESPACE} namespace" >&2
+    echo "${CSV_NAME} not found in ${NAMESPACE} namespace" >&2
     exit 1
   elif [[ -z "${CRDS}" ]]; then
     echo "${TITLE} crds not found" >&2
